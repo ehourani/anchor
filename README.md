@@ -1,4 +1,4 @@
-# Anchor
+# ⚓️ Anchor
 
 A personal, mobile-friendly toolkit for finding and tracking healthy coping skills — built to support eating disorder recovery by making the right skill fast to reach in a moment of need.
 
