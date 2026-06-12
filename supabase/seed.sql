@@ -1,4 +1,6 @@
--- seed.sql — global, read-only vocabulary: tag_categories + tags (PROJECT.md §9).
--- Runs on `supabase db reset` after migrations. Filled in alongside migration 0002/0003.
+-- seed.sql — runs only on local `supabase db reset` / `supabase db start`,
+-- NOT on `supabase db push`.
 --
--- Tip: space sort_order out (10, 20, 30) so new tags can slot in without renumbering.
+-- The global tag vocabulary (tag_categories + tags) now lives in migration
+-- 0003_seed_vocabulary.sql so it deploys to the live project too. Keep this file
+-- for any local-only convenience data; it is intentionally empty for now.

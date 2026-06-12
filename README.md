@@ -79,8 +79,8 @@ src/                  # React app, organized by feature
   components/ui/       # shadcn/ui components
   hooks/              # shared query/mutation hooks
 supabase/             # the database, as code
-  migrations/         # schema + RLS + seed trigger (versioned SQL)
-  seed.sql            # global vocabulary: tag_categories + tags
+  migrations/         # tables + RLS + vocabulary + signup trigger (versioned SQL)
+  seed.sql            # local-only convenience data (vocabulary lives in migration 0003)
   functions/          # Edge Functions (none required for MVP)
 ```
 

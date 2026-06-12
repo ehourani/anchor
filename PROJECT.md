@@ -114,7 +114,7 @@ create policy "own skills - delete" on skills
 
 ### Seeding
 
-On signup, a `security definer` trigger copies a set of default skills (with their tags and pre-set crisis priorities) into the new user's own rows, so a brand-new account has a working crisis mode immediately. The master list of default skills lives **inside that function** — there is no template table. The shared vocabulary (`tag_categories`, `tags`) is plain seed data in `seed.sql`.
+On signup, a `security definer` trigger copies a set of default skills (with their tags and pre-set crisis priorities) into the new user's own rows, so a brand-new account has a working crisis mode immediately. The master list of default skills lives **inside that function** — there is no template table. The shared vocabulary (`tag_categories`, `tags`) is seeded in a migration (`0003_seed_vocabulary.sql`) rather than `seed.sql`, because `seed.sql` runs only on local `db reset` and would never reach the deployed project via `db push` — and the signup trigger depends on it.
 
 ### Hosting
 
@@ -247,8 +247,8 @@ src/                  # React app, organized by feature
   components/ui/      # shadcn/ui components
   hooks/              # shared query/mutation hooks
 supabase/             # the database, as code
-  migrations/         # 0001 tables · 0002 RLS · 0003 seed trigger
-  seed.sql            # global vocabulary: tag_categories + tags
+  migrations/         # 0001 tables · 0002 RLS · 0003 vocabulary · 0004 signup trigger
+  seed.sql            # local-only convenience data (vocabulary lives in migration 0003)
   functions/          # Edge Functions (none required for MVP)
 public/               # static assets (+ PWA manifest later)
 .env.local            # VITE_SUPABASE_URL + anon key (gitignored)
