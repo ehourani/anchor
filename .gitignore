@@ -21,3 +21,9 @@ dist-ssr/
 # Logs
 *.log
 npm-debug.log*
+
+# Agent tooling (installed skills + local Claude settings)
+.agents/
+skills-lock.json
+.claude/settings.local.json
+.claude/skills/
