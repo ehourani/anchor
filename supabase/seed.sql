@@ -1,0 +1,4 @@
+-- seed.sql — global, read-only vocabulary: tag_categories + tags (PROJECT.md §9).
+-- Runs on `supabase db reset` after migrations. Filled in alongside migration 0002/0003.
+--
+-- Tip: space sort_order out (10, 20, 30) so new tags can slot in without renumbering.

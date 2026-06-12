@@ -1,6 +1,6 @@
-# Coping Skills Toolkit — Project & Design Doc
+# Anchor — Project & Design Doc
 
-This document consolidates the product thinking and technical decisions behind the Coping Skills Toolkit. It's meant as a single source of context — for the developer and for any AI assistant working on the project. See [`README.md`](./README.md) for setup and [`CLAUDE.md`](./CLAUDE.md) for working conventions.
+This document consolidates the product thinking and technical decisions behind Anchor. It's meant as a single source of context — for the developer and for any AI assistant working on the project. See [`README.md`](./README.md) for setup and [`CLAUDE.md`](./CLAUDE.md) for working conventions.
 
 ---
 
