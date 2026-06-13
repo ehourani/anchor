@@ -15,6 +15,7 @@ type SkillRow = {
   title: string
   description: string | null
   crisis_priority: number | null
+  is_favorite: boolean
   // Embedded join: each skill_tags row points at one tag.
   skill_tags: { tags: TagLite | TagLite[] | null }[] | null
 }
@@ -32,6 +33,7 @@ function toSkill(row: SkillRow): Skill {
     title: row.title,
     description: row.description ?? '',
     crisisPriority: row.crisis_priority,
+    isFavorite: row.is_favorite,
     tags,
   }
 }
@@ -47,7 +49,7 @@ export function useSkills() {
       const { data, error } = await supabase
         .from('skills')
         .select(
-          'id, title, description, crisis_priority, skill_tags(tags(slug, tag_category))',
+          'id, title, description, crisis_priority, is_favorite, skill_tags(tags(slug, tag_category))',
         )
         .order('created_at', { ascending: true })
       if (error) throw error

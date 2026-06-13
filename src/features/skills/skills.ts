@@ -15,6 +15,7 @@ export function createSkill(draft: NewSkillDraft): Skill {
     title: draft.title.trim(),
     description: draft.description.trim(),
     crisisPriority: null,
+    isFavorite: false,
     tags: draft.tags,
   }
 }
@@ -54,4 +55,79 @@ export async function insertSkill(
   }
 
   return inserted.id
+}
+
+// Edit an existing skill: update its fields, then reconcile its tag links by
+// diffing the desired set against what's stored (insertSkill only ever adds, so
+// edits need the delete side too). Like insertSkill, this is several non-
+// transactional requests — an atomic RPC is tracked in the backlog. RLS scopes
+// every write to the owner.
+export async function updateSkill(
+  skillId: string,
+  draft: NewSkillDraft,
+  resolveTagId: (category: string, slug: string) => string | undefined,
+): Promise<void> {
+  // Resolve the target tags up front so bad vocabulary fails before any write.
+  const nextTagIds = draft.tags.map((t) => {
+    const id = resolveTagId(t.category, t.label)
+    if (!id) throw new Error(`Unknown tag: ${t.category}/${t.label}`)
+    return id
+  })
+
+  const { error: updateError } = await supabase
+    .from('skills')
+    .update({
+      title: draft.title.trim(),
+      description: draft.description.trim() || null,
+    })
+    .eq('id', skillId)
+  if (updateError) throw updateError
+
+  const { data: existing, error: readError } = await supabase
+    .from('skill_tags')
+    .select('tag_id')
+    .eq('skill_id', skillId)
+  if (readError) throw readError
+
+  const existingIds = new Set((existing ?? []).map((r) => r.tag_id))
+  const nextIds = new Set(nextTagIds)
+  const toAdd = nextTagIds.filter((id) => !existingIds.has(id))
+  const toRemove = [...existingIds].filter((id) => !nextIds.has(id))
+
+  if (toRemove.length > 0) {
+    const { error } = await supabase
+      .from('skill_tags')
+      .delete()
+      .eq('skill_id', skillId)
+      .in('tag_id', toRemove)
+    if (error) throw error
+  }
+
+  if (toAdd.length > 0) {
+    const { error } = await supabase
+      .from('skill_tags')
+      .insert(toAdd.map((tag_id) => ({ skill_id: skillId, tag_id })))
+    if (error) throw error
+  }
+}
+
+// Flip a skill's favorite flag. RLS scopes the update to the owner; we don't
+// pass user_id since the WHERE on id plus the policy is enough.
+export async function setFavorite(
+  skillId: string,
+  isFavorite: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('skills')
+    .update({ is_favorite: isFavorite })
+    .eq('id', skillId)
+  if (error) throw error
+}
+
+// Delete a skill. Its skill_tags and usage_logs cascade-delete in the DB (see
+// migration 0001 foreign keys), so its history goes with it. RLS scopes the
+// delete to the owner.
+export async function deleteSkill(skillId: string): Promise<void> {
+  const { error } = await supabase.from('skills').delete().eq('id', skillId)
+  if (error) throw error
 }

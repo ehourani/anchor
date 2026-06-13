@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Check, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import type { Tag, TagCategory } from './sampleSkills'
+import type { Skill, Tag, TagCategory } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
 import { categoryStyles } from './TagChip'
 import { tagVocabulary } from './tagVocabulary'
@@ -19,35 +19,52 @@ function emptySelection(defaultSituation: string | null): Selection {
   }
 }
 
-export function AddSkillSheet({
+// An existing skill's tags, grouped back into the picker's selection shape.
+// Skill.tags carry the slug as their label, which is exactly what the option
+// buttons key on, so the grouping lines up without any remapping.
+function selectionFromSkill(skill: Skill): Selection {
+  const sel = emptySelection(null)
+  for (const t of skill.tags) sel[t.category] = [...sel[t.category], t.label]
+  return sel
+}
+
+// One sheet for both adding and editing a skill. Pass `skill` to edit (the form
+// pre-fills and the copy shifts to an edit voice); omit it to add. `onSubmit`
+// receives the draft either way — the caller wires it to create vs. update.
+export function SkillSheet({
   open,
   onClose,
-  onCreate,
-  defaultSituation,
+  onSubmit,
+  defaultSituation = null,
+  skill = null,
 }: {
   open: boolean
   onClose: () => void
-  onCreate: (draft: NewSkillDraft) => Promise<void>
-  defaultSituation: string | null
+  onSubmit: (draft: NewSkillDraft) => Promise<void>
+  defaultSituation?: string | null
+  skill?: Skill | null
 }) {
+  const isEdit = skill !== null
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selected, setSelected] = useState<Selection>(emptySelection(null))
-  const [added, setAdded] = useState(false)
+  const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fresh form each open, pre-selecting the situation we came from.
+  // Fresh form each open: pre-fill from the skill when editing, otherwise blank
+  // with the situation we came from. Keyed on the skill id (not the object) so a
+  // background refetch can't reset the form mid-edit.
   useEffect(() => {
-    if (open) {
-      setTitle('')
-      setDescription('')
-      setSelected(emptySelection(defaultSituation))
-      setAdded(false)
-      setSaving(false)
-      setError(null)
-    }
-  }, [open, defaultSituation])
+    if (!open) return
+    setTitle(skill?.title ?? '')
+    setDescription(skill?.description ?? '')
+    setSelected(skill ? selectionFromSkill(skill) : emptySelection(defaultSituation))
+    setDone(false)
+    setSaving(false)
+    setError(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, skill?.id, defaultSituation])
 
   useEffect(() => {
     if (!open) return
@@ -87,12 +104,12 @@ export function AddSkillSheet({
     setError(null)
     setSaving(true)
     try {
-      await onCreate({ title, description, tags })
+      await onSubmit({ title, description, tags })
       // Only celebrate once the write actually landed.
-      setAdded(true)
+      setDone(true)
     } catch (err) {
       // Gentle for the user; full detail in the console for debugging.
-      console.error('Failed to add skill:', err)
+      console.error(isEdit ? 'Failed to save skill:' : 'Failed to add skill:', err)
       setError("We couldn't save that just now. Please try again.")
     } finally {
       setSaving(false)
@@ -112,7 +129,7 @@ export function AddSkillSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Add a coping skill"
+        aria-label={isEdit ? 'Edit a coping skill' : 'Add a coping skill'}
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90vh] max-w-md flex-col rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -121,7 +138,13 @@ export function AddSkillSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              {added ? 'Added to your toolkit' : 'Add a skill'}
+              {done
+                ? isEdit
+                  ? 'Saved'
+                  : 'Added to your toolkit'
+                : isEdit
+                  ? 'Edit skill'
+                  : 'Add a skill'}
             </h2>
             <button
               onClick={onClose}
@@ -133,12 +156,14 @@ export function AddSkillSheet({
           </div>
         </div>
 
-        {added ? (
+        {done ? (
           <div className="px-6 pb-8 pt-4">
             <div className="flex items-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
               <Check className="size-5" />
               <span className="font-semibold">
-                “{title.trim()}” is in your toolkit now.
+                {isEdit
+                  ? `“${title.trim()}” is updated.`
+                  : `“${title.trim()}” is in your toolkit now.`}
               </span>
             </div>
             <button
@@ -193,11 +218,11 @@ export function AddSkillSheet({
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {cat.options.map((opt) => {
-                      const sel = selected[cat.category].includes(opt)
+                      const sel = selected[cat.category].includes(opt.slug)
                       return (
                         <button
-                          key={opt}
-                          onClick={() => toggle(cat.category, opt, cat.multi)}
+                          key={opt.slug}
+                          onClick={() => toggle(cat.category, opt.slug, cat.multi)}
                           className={cn(
                             'rounded-full border px-3 py-1 text-sm font-medium transition-colors',
                             sel
@@ -205,7 +230,7 @@ export function AddSkillSheet({
                               : 'border-border bg-white/55 text-foreground/55 hover:bg-white/80',
                           )}
                         >
-                          {opt}
+                          {opt.label}
                         </button>
                       )
                     })}
@@ -230,7 +255,13 @@ export function AddSkillSheet({
                     : 'cursor-not-allowed bg-primary/30 text-primary-foreground/70',
                 )}
               >
-                {saving ? 'Adding…' : 'Add skill'}
+                {saving
+                  ? isEdit
+                    ? 'Saving…'
+                    : 'Adding…'
+                  : isEdit
+                    ? 'Save changes'
+                    : 'Add skill'}
               </button>
             </div>
           </>

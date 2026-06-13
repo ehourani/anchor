@@ -22,6 +22,7 @@ export type Skill = {
   description: string
   /** 1 = highest. Present means it's part of the out-of-the-box crisis set. */
   crisisPriority: number | null
+  isFavorite: boolean
   tags: Tag[]
 }
 
@@ -32,6 +33,7 @@ export const sampleSkills: Skill[] = [
     description:
       "Send one small message to a person who feels steady right now — a friend, a family member, anyone safe. You don't need the right words. Even “thinking of you” or “having a hard moment” is enough to feel a little less alone.",
     crisisPriority: 1,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'crisis' },
       { category: 'situation', label: 'emotion-regulation' },
@@ -45,6 +47,7 @@ export const sampleSkills: Skill[] = [
     description:
       'Splash cold water on your face, hold an ice cube, or press something cold to your wrists or the back of your neck for about 30 seconds. The cold gently shifts your body out of a spike of distress and back toward calm.',
     crisisPriority: 2,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'crisis' },
       { category: 'situation', label: 'distraction' },
@@ -59,6 +62,7 @@ export const sampleSkills: Skill[] = [
     description:
       'Slowly notice five things you can see, four you can hear, three you can touch, two you can smell, and one you can taste. Take your time with each one — it brings you out of your head and back into the present moment.',
     crisisPriority: 3,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'crisis' },
       { category: 'situation', label: 'emotion-regulation' },
@@ -74,6 +78,7 @@ export const sampleSkills: Skill[] = [
     description:
       'Breathe in gently for a count of four, then out for a count of six. Let the out-breath be longer and softer than the in-breath, and repeat for a minute or two. The longer exhale is what settles your nervous system.',
     crisisPriority: 4,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'crisis' },
       { category: 'situation', label: 'emotion-regulation' },
@@ -87,6 +92,7 @@ export const sampleSkills: Skill[] = [
     description:
       "Notice the urge like a wave in the ocean — it rises, it crests, and it always passes. You don't have to act on it or push it away. Just breathe and watch it move through, knowing it will ease on its own.",
     crisisPriority: 5,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'crisis' },
       { category: 'situation', label: 'distraction' },
@@ -101,6 +107,7 @@ export const sampleSkills: Skill[] = [
     description:
       'Step outside for a few minutes of fresh air and a change of scene — around the block, to the end of the street, or just out the door. No destination, no pace to keep. The movement and the shift in surroundings can loosen a stuck feeling.',
     crisisPriority: null,
+    isFavorite: false,
     tags: [
       { category: 'situation', label: 'distraction' },
       { category: 'situation', label: 'life-building' },

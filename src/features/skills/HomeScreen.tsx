@@ -22,13 +22,16 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { signOut } from '@/features/auth/auth'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
-import { AddSkillSheet } from './AddSkillSheet'
+import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
+import { SkillFilters } from './SkillFilters'
 import type { Skill } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
+import { emptyFilters, matchesFilters, type Filters } from './filters'
 import { useSkills } from './useSkills'
 import { useCreateSkill } from './useCreateSkill'
+import { useUpdateSkill } from './useUpdateSkill'
 
 // A friendly first name for the greeting: Google's profile name if we have it,
 // otherwise the part of the email before the @, else a gentle fallback.
@@ -100,18 +103,26 @@ export function HomeScreen() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [editSkill, setEditSkill] = useState<Skill | null>(null)
+  const [filters, setFilters] = useState<Filters>(emptyFilters())
   const [menuOpen, setMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
 
   const screen = stack[stack.length - 1]
   const push = (s: Screen) => setStack((st) => [...st, s])
   const back = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st))
+  // Tapping the brand always returns to a fresh home (and folds the wheel back).
+  const goHome = () => {
+    setStack([{ k: 'home' }])
+    setExpanded(false)
+  }
   // The drawer's "All …" views reset to one level deep, so Back returns home.
   const navTop = (s: Screen) => setStack([{ k: 'home' }, s])
 
   // Live, per-user skills from Supabase.
   const { data: skills = [], isLoading, isError } = useSkills()
   const createSkill = useCreateSkill()
+  const updateSkill = useUpdateSkill()
   const invitation = pickInvitation(skills)
 
   const activeSituation =
@@ -125,8 +136,10 @@ export function HomeScreen() {
       ? skills.find((s) => s.id === screen.id) ?? null
       : null
 
-  const handleCreate = async (draft: NewSkillDraft) => {
-    await createSkill.mutateAsync(draft)
+  // The one sheet does both: update when we're editing, insert otherwise.
+  const handleSubmit = async (draft: NewSkillDraft) => {
+    if (editSkill) await updateSkill.mutateAsync({ skillId: editSkill.id, draft })
+    else await createSkill.mutateAsync(draft)
   }
 
   const matches = activeSituation
@@ -136,19 +149,31 @@ export function HomeScreen() {
             (t) => t.category === 'situation' && t.label === activeSituation.key,
           ),
         )
-        // In crisis, lead with the highest-priority steadying skills.
-        .sort((a, b) =>
-          activeSituation.key === 'crisis'
-            ? (a.crisisPriority ?? 99) - (b.crisisPriority ?? 99)
-            : 0,
+        // Starred skills float to the top; in crisis, lead with the highest-
+        // priority steadying skills among them.
+        .sort(
+          (a, b) =>
+            Number(b.isFavorite) - Number(a.isFavorite) ||
+            (activeSituation.key === 'crisis'
+              ? (a.crisisPriority ?? 99) - (b.crisisPriority ?? 99)
+              : 0),
         )
     : []
+  const visibleMatches = matches.filter((s) => matchesFilters(s, filters))
+
+  // The full toolkit, starred-first then alphabetical, with filters applied.
+  const allSorted = [...skills].sort(
+    (a, b) =>
+      Number(b.isFavorite) - Number(a.isFavorite) ||
+      a.title.localeCompare(b.title),
+  )
+  const visibleAll = allSorted.filter((s) => matchesFilters(s, filters))
 
   return (
     <div className="relative min-h-screen">
       <OceanBackdrop />
 
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-6 pt-6">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-28 pt-6">
         {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
         <header className="relative flex h-9 items-center justify-between">
           {stack.length > 1 ? (
@@ -169,14 +194,18 @@ export function HomeScreen() {
             </button>
           )}
 
-          <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+          <button
+            onClick={goHome}
+            aria-label="Anchor — go home"
+            className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
+          >
             <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-primary">
               <Anchor className="size-4" />
             </span>
             <span className="font-display text-xl font-bold tracking-tight text-foreground">
               Anchor
             </span>
-          </div>
+          </button>
 
           <div className="relative">
             <button
@@ -229,6 +258,8 @@ export function HomeScreen() {
                 skill={openSkill}
                 onDone={back}
                 onViewHistory={() => push({ k: 'skill-logs', id: openSkill.id })}
+                onEdit={() => setEditSkill(openSkill)}
+                onDeleted={back}
               />
             ) : (
               <div className="mt-5">
@@ -253,9 +284,15 @@ export function HomeScreen() {
                   All skills
                 </h1>
                 <p className="mt-1 text-sm text-foreground/50">
-                  {skills.length} {skills.length === 1 ? 'skill' : 'skills'}
+                  {visibleAll.length}{' '}
+                  {visibleAll.length === 1 ? 'skill' : 'skills'}
                 </p>
               </div>
+              {!isLoading && !isError && skills.length > 0 && (
+                <div className="mt-3">
+                  <SkillFilters filters={filters} onChange={setFilters} />
+                </div>
+              )}
               <div className="mt-4 space-y-3">
                 {isLoading ? (
                   <ListNotice>Gathering your skills…</ListNotice>
@@ -267,16 +304,18 @@ export function HomeScreen() {
                   <ListNotice>
                     Nothing here yet — you can add a skill with the + below.
                   </ListNotice>
+                ) : visibleAll.length === 0 ? (
+                  <ListNotice>
+                    No skills match these filters — try clearing a few.
+                  </ListNotice>
                 ) : (
-                  [...skills]
-                    .sort((a, b) => a.title.localeCompare(b.title))
-                    .map((skill) => (
-                      <SkillCard
-                        key={skill.id}
-                        skill={skill}
-                        onOpen={() => push({ k: 'skill', id: skill.id })}
-                      />
-                    ))
+                  visibleAll.map((skill) => (
+                    <SkillCard
+                      key={skill.id}
+                      skill={skill}
+                      onOpen={() => push({ k: 'skill', id: skill.id })}
+                    />
+                  ))
                 )}
               </div>
             </>
@@ -291,9 +330,15 @@ export function HomeScreen() {
                   {activeSituation.heading}
                 </h1>
                 <p className="mt-1 text-sm text-foreground/50">
-                  {matches.length} {matches.length === 1 ? 'skill' : 'skills'}
+                  {visibleMatches.length}{' '}
+                  {visibleMatches.length === 1 ? 'skill' : 'skills'}
                 </p>
               </div>
+              {!isLoading && !isError && matches.length > 0 && (
+                <div className="mt-3">
+                  <SkillFilters filters={filters} onChange={setFilters} />
+                </div>
+              )}
               <div className="mt-4 space-y-3">
                 {isLoading ? (
                   <ListNotice>Gathering your skills…</ListNotice>
@@ -306,8 +351,12 @@ export function HomeScreen() {
                   <ListNotice>
                     Nothing here yet — you can add a skill with the + below.
                   </ListNotice>
+                ) : visibleMatches.length === 0 ? (
+                  <ListNotice>
+                    No skills match these filters — try clearing a few.
+                  </ListNotice>
                 ) : (
-                  matches.map((skill) => (
+                  visibleMatches.map((skill) => (
                     <SkillCard
                       key={skill.id}
                       skill={skill}
@@ -376,7 +425,10 @@ export function HomeScreen() {
                   <SituationWheel
                     expanded={expanded}
                     onToggle={() => setExpanded((e) => !e)}
-                    onSelect={(key) => push({ k: 'situation', key })}
+                    onSelect={(key) => {
+                      setFilters(emptyFilters())
+                      push({ k: 'situation', key })
+                    }}
                   />
                   {/* Fixed-height slot so the hint never reflows the buoy; the
                       two messages cross-fade, capped to the buoy's width. */}
@@ -402,27 +454,32 @@ export function HomeScreen() {
           )}
         </div>
 
-        {/* Bottom actions — add a skill · support · log a use. Always reachable.
-            Each side button sits centered between the phone and the edge. */}
-        <div className="relative mt-4 h-14 w-full">
+      </div>
+
+      {/* Bottom actions — add a skill · support · log a use. Always reachable,
+          floating over the content so they stay in reach on long, scrolling
+          lists. The wrapper ignores pointer events so the gaps stay click-
+          through; each button re-enables them. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 mx-auto h-14 w-full max-w-md px-5">
+        <div className="relative h-full w-full">
           <button
             onClick={() => setAddOpen(true)}
             aria-label="Add a coping skill"
-            className={`${bottomButton} absolute left-1/4 top-0 -translate-x-1/2`}
+            className={`${bottomButton} pointer-events-auto absolute left-1/4 top-0 -translate-x-1/2`}
           >
             <Plus className="size-6" strokeWidth={1.75} />
           </button>
           <button
             onClick={() => setHelpOpen(true)}
             aria-label="Get support"
-            className={`${bottomButton} absolute left-1/2 top-0 -translate-x-1/2`}
+            className={`${bottomButton} pointer-events-auto absolute left-1/2 top-0 -translate-x-1/2`}
           >
             <Phone className="size-6" strokeWidth={1.75} />
           </button>
           <button
             onClick={() => setLogOpen(true)}
             aria-label="Log a coping skill"
-            className={`${bottomButton} absolute left-3/4 top-0 -translate-x-1/2`}
+            className={`${bottomButton} pointer-events-auto absolute left-3/4 top-0 -translate-x-1/2`}
           >
             <NotebookPen className="size-6" strokeWidth={1.75} />
           </button>
@@ -434,16 +491,23 @@ export function HomeScreen() {
         onClose={() => setMenuOpen(false)}
         onAddSkill={() => setAddOpen(true)}
         onLogUsage={() => setLogOpen(true)}
-        onAllSkills={() => navTop({ k: 'all-skills' })}
+        onAllSkills={() => {
+          setFilters(emptyFilters())
+          navTop({ k: 'all-skills' })
+        }}
         onAllLogs={() => navTop({ k: 'all-logs' })}
       />
       <SupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       <LogSheet open={logOpen} onClose={() => setLogOpen(false)} skills={skills} />
-      <AddSkillSheet
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        onCreate={handleCreate}
+      <SkillSheet
+        open={addOpen || editSkill !== null}
+        onClose={() => {
+          setAddOpen(false)
+          setEditSkill(null)
+        }}
+        onSubmit={handleSubmit}
         defaultSituation={screen.k === 'situation' ? screen.key : null}
+        skill={editSkill}
       />
     </div>
   )
