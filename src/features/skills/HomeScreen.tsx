@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import {
   Anchor,
   ChevronLeft,
@@ -24,8 +23,9 @@ import { AddSkillSheet } from './AddSkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
 import type { Skill } from './sampleSkills'
-import { createSkill, type NewSkillDraft } from './skills'
-import { skillsQueryKey, useSkills } from './useSkills'
+import type { NewSkillDraft } from './skills'
+import { useSkills } from './useSkills'
+import { useCreateSkill } from './useCreateSkill'
 
 // A friendly first name for the greeting: Google's profile name if we have it,
 // otherwise the part of the email before the @, else a gentle fallback.
@@ -75,21 +75,15 @@ export function HomeScreen() {
   const [openSkillId, setOpenSkillId] = useState<string | null>(null)
 
   // Live, per-user skills from Supabase.
-  const queryClient = useQueryClient()
   const { data: skills = [], isLoading, isError } = useSkills()
+  const createSkill = useCreateSkill()
 
   const active = situations.find((s) => s.key === selected) ?? null
   const openSkill = skills.find((s) => s.id === openSkillId) ?? null
   const invitation = pickInvitation(skills)
 
-  const handleCreate = (draft: NewSkillDraft) => {
-    // Bridge until writes land (#2): drop the new skill into the cache so the
-    // add flow stays usable. This is optimistic-only — no DB insert yet, so it
-    // won't survive a refetch. Becomes a real insert + invalidation next.
-    const created = createSkill(draft)
-    queryClient.setQueryData<Skill[]>(skillsQueryKey(user?.id), (prev) =>
-      prev ? [...prev, created] : [created],
-    )
+  const handleCreate = async (draft: NewSkillDraft) => {
+    await createSkill.mutateAsync(draft)
   }
 
   // Back steps out one level at a time: skill detail → list → home.

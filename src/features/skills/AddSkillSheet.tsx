@@ -27,13 +27,15 @@ export function AddSkillSheet({
 }: {
   open: boolean
   onClose: () => void
-  onCreate: (draft: NewSkillDraft) => void
+  onCreate: (draft: NewSkillDraft) => Promise<void>
   defaultSituation: string | null
 }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selected, setSelected] = useState<Selection>(emptySelection(null))
   const [added, setAdded] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Fresh form each open, pre-selecting the situation we came from.
   useEffect(() => {
@@ -42,6 +44,8 @@ export function AddSkillSheet({
       setDescription('')
       setSelected(emptySelection(defaultSituation))
       setAdded(false)
+      setSaving(false)
+      setError(null)
     }
   }, [open, defaultSituation])
 
@@ -75,13 +79,24 @@ export function AddSkillSheet({
     selected.effort.length === 1 &&
     selected.setting.length > 0
 
-  const submit = () => {
-    if (!valid) return
+  const submit = async () => {
+    if (!valid || saving) return
     const tags: Tag[] = tagVocabulary.flatMap((c) =>
       selected[c.category].map((label) => ({ category: c.category, label })),
     )
-    onCreate({ title, description, tags })
-    setAdded(true)
+    setError(null)
+    setSaving(true)
+    try {
+      await onCreate({ title, description, tags })
+      // Only celebrate once the write actually landed.
+      setAdded(true)
+    } catch (err) {
+      // Gentle for the user; full detail in the console for debugging.
+      console.error('Failed to add skill:', err)
+      setError("We couldn't save that just now. Please try again.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -200,17 +215,22 @@ export function AddSkillSheet({
             </div>
 
             <div className="shrink-0 border-t border-border/60 px-6 pb-6 pt-3">
+              {error && (
+                <p className="mb-3 rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+                  {error}
+                </p>
+              )}
               <button
                 onClick={submit}
-                disabled={!valid}
+                disabled={!valid || saving}
                 className={cn(
                   'w-full rounded-2xl py-3.5 font-semibold transition-colors',
-                  valid
+                  valid && !saving
                     ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
                     : 'cursor-not-allowed bg-primary/30 text-primary-foreground/70',
                 )}
               >
-                Add skill
+                {saving ? 'Adding…' : 'Add skill'}
               </button>
             </div>
           </>
