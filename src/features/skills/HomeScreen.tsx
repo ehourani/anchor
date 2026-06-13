@@ -14,6 +14,7 @@ import { SituationWheel } from '@/features/finder/SituationWheel'
 import { situations } from '@/features/finder/situations'
 import { SupportDrawer } from '@/features/crisis/SupportDrawer'
 import { SkillCard } from './SkillCard'
+import { SkillDetail } from './SkillDetail'
 import { sampleSkills } from './sampleSkills'
 
 // Placeholder until profiles land — this will come from the signed-in user.
@@ -87,10 +88,16 @@ export function HomeScreen() {
   const [selected, setSelected] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-
-  const goBack = () => setSelected(null)
+  const [openSkillId, setOpenSkillId] = useState<string | null>(null)
 
   const active = situations.find((s) => s.key === selected) ?? null
+  const openSkill = sampleSkills.find((s) => s.id === openSkillId) ?? null
+
+  // Back steps out one level at a time: skill detail → list → home.
+  const goBack = () => {
+    if (openSkill) setOpenSkillId(null)
+    else setSelected(null)
+  }
 
   const matches = active
     ? sampleSkills
@@ -114,7 +121,7 @@ export function HomeScreen() {
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-6 pt-6">
         {/* Navbar — menu · brand · profile (Back replaces menu in a situation) */}
         <header className="relative flex h-9 items-center justify-between">
-          {active ? (
+          {active || openSkill ? (
             <button
               onClick={goBack}
               className="flex items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
@@ -143,10 +150,13 @@ export function HomeScreen() {
         </header>
 
         <div
-          key={active?.key ?? 'home'}
+          key={openSkillId ?? active?.key ?? 'home'}
           className="animate-fade-rise flex flex-1 flex-col"
         >
-          {active ? (
+          {openSkill ? (
+            /* Skill detail — full view of one skill */
+            <SkillDetail skill={openSkill} />
+          ) : active ? (
             /* Filtered view — skills for the chosen situation */
             <>
               <div className="mt-5">
@@ -156,11 +166,24 @@ export function HomeScreen() {
                 <h1 className="mt-1 font-display text-[1.6rem] font-semibold leading-tight text-foreground">
                   {active.heading}
                 </h1>
+                <p className="mt-1 text-sm text-foreground/50">
+                  {matches.length} {matches.length === 1 ? 'skill' : 'skills'}
+                </p>
               </div>
-              <div className="mt-5 space-y-3">
-                {matches.map((skill) => (
-                  <SkillCard key={skill.id} skill={skill} />
-                ))}
+              <div className="mt-4 space-y-3">
+                {matches.length === 0 ? (
+                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
+                    Nothing here yet — you can add a skill with the + below.
+                  </div>
+                ) : (
+                  matches.map((skill) => (
+                    <SkillCard
+                      key={skill.id}
+                      skill={skill}
+                      onOpen={() => setOpenSkillId(skill.id)}
+                    />
+                  ))
+                )}
               </div>
             </>
           ) : (
