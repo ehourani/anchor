@@ -9,6 +9,11 @@ import { useUsageLogs } from '@/features/history/useUsageLogs'
 import { TagChip } from './TagChip'
 import { useToggleFavorite } from './useToggleFavorite'
 import { useDeleteSkill } from './useDeleteSkill'
+import { useSkills } from './useSkills'
+import {
+  nextCrisisPriority,
+  useSetCrisisMembership,
+} from './useSetCrisisMembership'
 import type { Skill, TagCategory } from './sampleSkills'
 
 // Tag categories grouped for the detail view, in a friendly reading order.
@@ -40,6 +45,10 @@ export function SkillDetail({
   const { startLog, saveReflection: persistReflection } = useUsageLogger()
   const toggleFavorite = useToggleFavorite()
   const deleteSkill = useDeleteSkill()
+  const setCrisis = useSetCrisisMembership()
+  // The full toolkit, to place a newly-added skill at the end of the crisis set.
+  const { data: allSkills = [] } = useSkills()
+  const inCrisisSet = skill.crisisPriority !== null
 
   // Optimistic delete: drop it and leave the detail view at once, so it feels
   // immediate. A rare failure rolls the skill back in the list behind us.
@@ -84,6 +93,25 @@ export function SkillDetail({
             </h1>
           </div>
           <div className="-mr-1 mt-0.5 flex shrink-0 items-center gap-0.5">
+            <button
+              onClick={() =>
+                setCrisis.mutate({
+                  skillId: skill.id,
+                  priority: inCrisisSet ? null : nextCrisisPriority(allSkills),
+                })
+              }
+              aria-pressed={inCrisisSet}
+              aria-label={
+                inCrisisSet ? 'Remove from crisis set' : 'Add to crisis set'
+              }
+              className={`rounded-full p-2 transition-colors hover:bg-white/60 ${
+                inCrisisSet
+                  ? 'text-[hsl(8,58%,52%)]'
+                  : 'text-foreground/35 hover:text-[hsl(8,58%,52%)]'
+              }`}
+            >
+              <LifeBuoy className="size-6" />
+            </button>
             <button
               onClick={onEdit}
               aria-label="Edit skill"

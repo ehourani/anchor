@@ -145,3 +145,16 @@ export async function setCrisisPriority(
     .eq('id', skillId)
   if (error) throw error
 }
+
+// Rewrite the crisis set's order: assign priorities 1..n in the given sequence.
+// Like the other writes here this is several non-transactional requests (atomic
+// RPC is backlogged); RLS scopes every update to the owner.
+export async function setCrisisOrder(orderedIds: string[]): Promise<void> {
+  const results = await Promise.all(
+    orderedIds.map((id, i) =>
+      supabase.from('skills').update({ crisis_priority: i + 1 }).eq('id', id),
+    ),
+  )
+  const failed = results.find((r) => r.error)
+  if (failed?.error) throw failed.error
+}

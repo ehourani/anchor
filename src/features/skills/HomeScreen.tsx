@@ -9,6 +9,7 @@ import {
   NotebookPen,
   Phone,
   Plus,
+  Settings,
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
@@ -22,6 +23,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { signOut } from '@/features/auth/auth'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
+import { AccountScreen } from '@/features/account/AccountScreen'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
@@ -54,13 +56,28 @@ function timeGreeting(date: Date): string {
   return 'Hello'
 }
 
-// A softly-suggested skill to try today — a gentle, low-effort one from the
-// user's own toolkit, falling back to whatever's first.
-function pickInvitation(skills: Skill[]): Skill | null {
-  const lowEffort = skills.find((s) =>
+// A small, stable string hash (FNV-1a) — turns a seed into a number we can use
+// to pick a skill deterministically.
+function hashSeed(seed: string): number {
+  let h = 0x811c9dc5
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return h >>> 0
+}
+
+// A softly-suggested skill to try today. Rotates gently: one pick per day, tied
+// to the user (the same person sees the same invitation all day, a different one
+// tomorrow). Prefers low-effort skills so the suggestion always feels doable,
+// and falls back to the whole toolkit if none are tagged low.
+function pickInvitation(skills: Skill[], seed: string): Skill | null {
+  if (skills.length === 0) return null
+  const lowEffort = skills.filter((s) =>
     s.tags.some((t) => t.category === 'effort' && t.label === 'low'),
   )
-  return lowEffort ?? skills[0] ?? null
+  const pool = lowEffort.length > 0 ? lowEffort : skills
+  return pool[hashSeed(seed) % pool.length]
 }
 
 // The app's screens. The wheel flow (home → situation → skill) and the history
@@ -73,6 +90,7 @@ type Screen =
   | { k: 'all-logs' }
   | { k: 'skill-logs'; id: string }
   | { k: 'crisis' }
+  | { k: 'account' }
 
 function screenKey(s: Screen): string {
   if (s.k === 'situation') return `situation:${s.key}`
@@ -125,7 +143,10 @@ export function HomeScreen() {
   const { data: skills = [], isLoading, isError } = useSkills()
   const createSkill = useCreateSkill()
   const updateSkill = useUpdateSkill()
-  const invitation = pickInvitation(skills)
+  // Seed today's invitation with the user + the date, so it's steady through the
+  // day and gently rotates to a new skill tomorrow.
+  const invitationSeed = `${user?.id ?? ''}:${new Date().toDateString()}`
+  const invitation = pickInvitation(skills, invitationSeed)
 
   // What's worked, from the user's own reflections. Unrated skills sit at a
   // neutral midpoint so lists stay alphabetical until ratings exist.
@@ -246,9 +267,19 @@ export function HomeScreen() {
                   <button
                     onClick={() => {
                       setProfileOpen(false)
+                      navTop({ k: 'account' })
+                    }}
+                    className="mt-3 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
+                  >
+                    <Settings className="size-4" />
+                    Account & data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false)
                       void signOut()
                     }}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/70 bg-white/70 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
+                    className="mt-2 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
                   >
                     <LogOut className="size-4" />
                     Sign out
@@ -294,6 +325,8 @@ export function HomeScreen() {
             )
           ) : screen.k === 'all-logs' ? (
             <AllLogsScreen />
+          ) : screen.k === 'account' ? (
+            <AccountScreen />
           ) : screen.k === 'all-skills' ? (
             /* All skills — the full toolkit, alphabetical */
             <>

@@ -6,18 +6,28 @@ export function LogReflection({
   helpfulness,
   note,
   onChange,
+  hideIntro = false,
 }: {
   helpfulness: Helpfulness | null
   note: string
   onChange: (helpfulness: Helpfulness | null, note: string) => void
+  // When editing an existing reflection the gentle "want to add one?" intro is
+  // out of place — the entry already exists — so callers can hide it.
+  hideIntro?: boolean
 }) {
   return (
     <div className="rounded-2xl border border-white/60 bg-white/55 p-5 backdrop-blur-md">
-      <p className="text-sm text-foreground/60">
-        Want to add a reflection? No pressure — this is just for you.
-      </p>
+      {!hideIntro && (
+        <p className="text-sm text-foreground/60">
+          Want to add a reflection? No pressure — this is just for you.
+        </p>
+      )}
 
-      <p className="mt-4 text-xs font-medium uppercase tracking-wide text-foreground/40">
+      <p
+        className={`text-xs font-medium uppercase tracking-wide text-foreground/40 ${
+          hideIntro ? '' : 'mt-4'
+        }`}
+      >
         Did it help?
       </p>
       <div className="mt-2 flex flex-wrap gap-2">

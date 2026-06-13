@@ -1,3 +1,5 @@
+import type { User } from '@supabase/supabase-js'
+
 import { supabase } from '@/lib/supabase'
 
 // Thin wrappers around supabase.auth. The whole app's authentication surface
@@ -33,4 +35,32 @@ export async function signInWithGoogle() {
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
+}
+
+// Whether this account can set a password — i.e. it has an email/password
+// identity. Google-only accounts don't, so the change-password UI is hidden for
+// them (their password lives with Google).
+export function hasPasswordLogin(user: User | null): boolean {
+  const identities = user?.identities ?? []
+  if (identities.length > 0) {
+    return identities.some((i) => i.provider === 'email')
+  }
+  // Fallback when identities aren't populated on the session user.
+  const providers = (user?.app_metadata?.providers as string[] | undefined) ?? []
+  return providers.includes('email') || user?.app_metadata?.provider === 'email'
+}
+
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) throw error
+}
+
+// Permanently delete the signed-in user's account and all their data. The
+// security-definer delete_own_account() RPC removes the auth.users row, which
+// cascade-deletes their skills and reflections (see the migration). We then
+// clear the now-invalid local session so the app returns to the sign-in screen.
+export async function deleteAccount() {
+  const { error } = await supabase.rpc('delete_own_account')
+  if (error) throw error
+  await supabase.auth.signOut({ scope: 'local' })
 }

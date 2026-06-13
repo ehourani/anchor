@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { Skill } from './sampleSkills'
-import { setCrisisPriority } from './skills'
+import { setCrisisOrder, setCrisisPriority } from './skills'
 import { skillsQueryKey } from './useSkills'
 
 // Adds or removes a skill from the crisis set, optimistically. Membership is a
@@ -27,6 +27,35 @@ export function useSetCrisisMembership() {
       queryClient.setQueryData<Skill[]>(key, (old) =>
         (old ?? []).map((s) =>
           s.id === skillId ? { ...s, crisisPriority: priority } : s,
+        ),
+      )
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key })
+    },
+  })
+}
+
+// Reorder the crisis set, optimistically. The new sequence becomes priorities
+// 1..n; non-members keep their null priority. Mirrors useSetCrisisMembership.
+export function useReorderCrisis() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const key = skillsQueryKey(user?.id)
+
+  return useMutation({
+    mutationFn: (orderedIds: string[]) => setCrisisOrder(orderedIds),
+    onMutate: async (orderedIds) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<Skill[]>(key)
+      const rank = new Map(orderedIds.map((id, i) => [id, i + 1]))
+      queryClient.setQueryData<Skill[]>(key, (old) =>
+        (old ?? []).map((s) =>
+          rank.has(s.id) ? { ...s, crisisPriority: rank.get(s.id)! } : s,
         ),
       )
       return { prev }
