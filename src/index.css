@@ -4,35 +4,38 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
+    /* Soft ocean — pale sky-aqua page, white frosted cards floating on water */
+    --background: 196 52% 97%;
+    --foreground: 205 28% 27%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card-foreground: 205 28% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 205 28% 27%;
 
-    --primary: 199 89% 41%;
+    /* Calm sea blue */
+    --primary: 194 62% 49%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 196 40% 93%;
+    --secondary-foreground: 205 28% 29%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 196 30% 93%;
+    --muted-foreground: 205 14% 48%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 190 50% 92%;
+    --accent-foreground: 195 44% 30%;
 
-    --destructive: 0 72% 51%;
+    /* Soft coral for destructive actions — never an alarming red */
+    --destructive: 8 68% 64%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 41%;
+    --border: 196 30% 88%;
+    --input: 196 30% 88%;
+    --ring: 194 62% 49%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
@@ -72,6 +75,80 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Atmosphere — gentle, slow, calming. A nod toward the falling-anchor /
+     parting-water intro we want later. */
+  @keyframes rise {
+    0% {
+      transform: translateY(0) scale(0.9);
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.55;
+    }
+    100% {
+      transform: translateY(-140px) scale(1.2);
+      opacity: 0;
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(18px, -22px);
+    }
+  }
+  @keyframes fade-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.07);
+    }
+  }
+  .animate-breathe {
+    animation: breathe 3.8s ease-in-out infinite;
+  }
+  .animate-rise {
+    animation: rise 9s ease-in-out infinite;
+  }
+  .animate-drift {
+    animation: drift 16s ease-in-out infinite;
+  }
+  .animate-fade-rise {
+    animation: fade-rise 0.6s ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-drift,
+  .animate-fade-rise,
+  .animate-breathe {
+    animation: none !important;
   }
 }
