@@ -4,12 +4,12 @@
 
 // Rising bubbles, hand-placed so the motion feels composed rather than random.
 const bubbles = [
-  { left: '8%', size: 13, delay: '0s', duration: '8s' },
-  { left: '22%', size: 8, delay: '2.5s', duration: '10s' },
-  { left: '47%', size: 18, delay: '1s', duration: '9s' },
-  { left: '68%', size: 11, delay: '3.5s', duration: '11s' },
-  { left: '85%', size: 14, delay: '0.8s', duration: '8.5s' },
-  { left: '92%', size: 7, delay: '4s', duration: '12s' },
+  { left: '8%', size: 21, delay: '0s', duration: '13s' },
+  { left: '22%', size: 14, delay: '2.5s', duration: '15s' },
+  { left: '47%', size: 28, delay: '1s', duration: '14s' },
+  { left: '68%', size: 18, delay: '3.5s', duration: '16s' },
+  { left: '85%', size: 23, delay: '0.8s', duration: '13.5s' },
+  { left: '92%', size: 12, delay: '4s', duration: '17s' },
 ]
 
 export function OceanBackdrop() {
@@ -31,7 +31,7 @@ export function OceanBackdrop() {
       {bubbles.map((b, i) => (
         <span
           key={i}
-          className="animate-rise absolute bottom-40 rounded-full border border-white/60 bg-white/40"
+          className="animate-rise absolute bottom-0 rounded-full border border-white/60 bg-white/40"
           style={{
             left: b.left,
             width: b.size,

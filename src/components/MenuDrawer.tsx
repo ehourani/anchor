@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
-import { List, NotebookPen, Plus, ScrollText, X } from 'lucide-react'
+import { LifeBuoy, List, NotebookPen, Plus, ScrollText, X } from 'lucide-react'
 
-// The left navigation drawer, opened from the ☰ button. Quick actions up top,
-// then a separator, then the "see everything" views.
+// The left navigation drawer, opened from the ☰ button. Crisis mode up top, then
+// quick actions, then a separator, then the "see everything" views.
 export function MenuDrawer({
   open,
   onClose,
+  onCrisis,
   onAddSkill,
   onLogUsage,
   onAllSkills,
@@ -13,6 +14,7 @@ export function MenuDrawer({
 }: {
   open: boolean
   onClose: () => void
+  onCrisis: () => void
   onAddSkill: () => void
   onLogUsage: () => void
   onAllSkills: () => void
@@ -66,6 +68,16 @@ export function MenuDrawer({
         </div>
 
         <nav className="mt-1 flex flex-col gap-1">
+          <button
+            className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[0.95rem] font-semibold text-[hsl(8,52%,44%)] transition-colors hover:bg-[hsl(10,76%,93%)]"
+            onClick={run(onCrisis)}
+          >
+            <LifeBuoy className="size-5 text-[hsl(8,58%,52%)]" />
+            Crisis mode
+          </button>
+
+          <div className="my-2 h-px bg-foreground/10" />
+
           <button className={item} onClick={run(onAddSkill)}>
             <Plus className="size-5 text-foreground/55" />
             Add a skill

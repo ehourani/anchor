@@ -131,3 +131,17 @@ export async function deleteSkill(skillId: string): Promise<void> {
   const { error } = await supabase.from('skills').delete().eq('id', skillId)
   if (error) throw error
 }
+
+// Set (or clear) a skill's crisis priority. Membership in the crisis set IS
+// having a non-null priority; the value is its rank (lower = shown first). Pass
+// null to remove it from the set. RLS scopes the update to the owner.
+export async function setCrisisPriority(
+  skillId: string,
+  priority: number | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from('skills')
+    .update({ crisis_priority: priority })
+    .eq('id', skillId)
+  if (error) throw error
+}

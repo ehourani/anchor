@@ -14,7 +14,7 @@ import type { User } from '@supabase/supabase-js'
 
 import { SituationWheel } from '@/features/finder/SituationWheel'
 import { situations } from '@/features/finder/situations'
-import { SupportDrawer } from '@/features/crisis/SupportDrawer'
+import { CrisisScreen } from '@/features/crisis/CrisisScreen'
 import { LogSheet } from '@/features/logging/LogSheet'
 import { OceanBackdrop } from '@/components/OceanBackdrop'
 import { MenuDrawer } from '@/components/MenuDrawer'
@@ -72,6 +72,7 @@ type Screen =
   | { k: 'all-skills' }
   | { k: 'all-logs' }
   | { k: 'skill-logs'; id: string }
+  | { k: 'crisis' }
 
 function screenKey(s: Screen): string {
   if (s.k === 'situation') return `situation:${s.key}`
@@ -84,7 +85,8 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
-// Shared style for the bottom action buttons (add · support · log).
+// Shared style for the bottom action buttons (add · log). The crisis button in
+// the middle is styled distinctly below.
 const bottomButton =
   'flex size-14 items-center justify-center rounded-full border border-white/60 bg-white/65 text-foreground/65 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md transition-colors hover:bg-white hover:text-foreground'
 
@@ -101,7 +103,6 @@ export function HomeScreen() {
   const { user } = useAuth()
   const [stack, setStack] = useState<Screen[]>([{ k: 'home' }])
   const [expanded, setExpanded] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editSkill, setEditSkill] = useState<Skill | null>(null)
@@ -262,7 +263,13 @@ export function HomeScreen() {
           key={screenKey(screen)}
           className="animate-fade-rise flex flex-1 flex-col"
         >
-          {screen.k === 'skill' ? (
+          {screen.k === 'crisis' ? (
+            /* Crisis mode — calm, no-filtering surface + support links */
+            <CrisisScreen
+              skills={skills}
+              onOpenSkill={(id) => push({ k: 'skill', id })}
+            />
+          ) : screen.k === 'skill' ? (
             /* Skill detail — full view of one skill */
             openSkill ? (
               <SkillDetail
@@ -432,18 +439,23 @@ export function HomeScreen() {
                   </h2>
                 </div>
 
-                <div className="flex flex-1 flex-col items-center justify-center">
+                <div className="flex flex-1 flex-col items-center justify-center pb-12">
                   <SituationWheel
                     expanded={expanded}
                     onToggle={() => setExpanded((e) => !e)}
                     onSelect={(key) => {
+                      // "In crisis" goes straight to crisis mode — no filtering.
+                      if (key === 'crisis') {
+                        push({ k: 'crisis' })
+                        return
+                      }
                       setFilters(emptyFilters())
                       push({ k: 'situation', key })
                     }}
                   />
                   {/* Fixed-height slot so the hint never reflows the buoy; the
                       two messages cross-fade, capped to the buoy's width. */}
-                  <div className="relative mt-3 h-12 w-full">
+                  <div className="relative mt-1 h-12 w-full">
                     <p
                       className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
                         expanded ? 'opacity-0' : 'opacity-100'
@@ -467,10 +479,11 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom actions — add a skill · support · log a use. Always reachable,
-          floating over the content so they stay in reach on long, scrolling
-          lists. The wrapper ignores pointer events so the gaps stay click-
-          through; each button re-enables them. */}
+      {/* Bottom actions — add a skill · crisis mode · log a use. Always
+          reachable, floating over the content so they stay in reach on long,
+          scrolling lists. The crisis button is larger and red so it reads as the
+          one-tap panic target. The wrapper ignores pointer events so the gaps
+          stay click-through; each button re-enables them. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 mx-auto h-14 w-full max-w-md px-5">
         <div className="relative h-full w-full">
           <button
@@ -481,11 +494,11 @@ export function HomeScreen() {
             <Plus className="size-6" strokeWidth={1.75} />
           </button>
           <button
-            onClick={() => setHelpOpen(true)}
-            aria-label="Get support"
-            className={`${bottomButton} pointer-events-auto absolute left-1/2 top-0 -translate-x-1/2`}
+            onClick={() => navTop({ k: 'crisis' })}
+            aria-label="Crisis mode"
+            className="pointer-events-auto absolute bottom-0 left-1/2 flex size-16 -translate-x-1/2 items-center justify-center rounded-full border border-white/60 bg-[hsl(8,76%,90%)]/70 text-[hsl(8,58%,48%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] backdrop-blur-md transition-colors hover:bg-[hsl(8,76%,88%)]/85 hover:text-[hsl(8,58%,40%)]"
           >
-            <Phone className="size-6" strokeWidth={1.75} />
+            <Phone className="size-7" strokeWidth={1.9} />
           </button>
           <button
             onClick={() => setLogOpen(true)}
@@ -500,6 +513,7 @@ export function HomeScreen() {
       <MenuDrawer
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        onCrisis={() => navTop({ k: 'crisis' })}
         onAddSkill={() => setAddOpen(true)}
         onLogUsage={() => setLogOpen(true)}
         onAllSkills={() => {
@@ -508,7 +522,6 @@ export function HomeScreen() {
         }}
         onAllLogs={() => navTop({ k: 'all-logs' })}
       />
-      <SupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       <LogSheet open={logOpen} onClose={() => setLogOpen(false)} skills={skills} />
       <SkillSheet
         open={addOpen || editSkill !== null}

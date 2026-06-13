@@ -94,11 +94,14 @@
       transform: translateY(0) scale(0.9);
       opacity: 0;
     }
-    20% {
+    8% {
+      opacity: 0.55;
+    }
+    88% {
       opacity: 0.55;
     }
     100% {
-      transform: translateY(-170px) scale(1.2);
+      transform: translateY(-100vh) scale(1.2);
       opacity: 0;
     }
   }
