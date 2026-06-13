@@ -419,7 +419,7 @@ export function HomeScreen() {
               </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
-              <section className="mt-9 flex flex-1 flex-col">
+              <section className="mt-5 flex flex-1 flex-col">
                 {/* Heading cross-fades between the resting + active prompts in
                     the same slot and the same format. */}
                 <div className="relative h-9">
@@ -496,9 +496,9 @@ export function HomeScreen() {
           <button
             onClick={() => navTop({ k: 'crisis' })}
             aria-label="Crisis mode"
-            className="pointer-events-auto absolute bottom-0 left-1/2 flex size-16 -translate-x-1/2 items-center justify-center rounded-full border border-white/60 bg-[hsl(8,76%,90%)]/70 text-[hsl(8,58%,48%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] backdrop-blur-md transition-colors hover:bg-[hsl(8,76%,88%)]/85 hover:text-[hsl(8,58%,40%)]"
+            className="pointer-events-auto absolute bottom-0 left-1/2 flex size-[4.5rem] -translate-x-1/2 items-center justify-center rounded-full border border-white/60 bg-[hsl(8,76%,90%)]/70 text-[hsl(8,58%,48%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] backdrop-blur-md transition-colors hover:bg-[hsl(8,76%,88%)]/85 hover:text-[hsl(8,58%,40%)]"
           >
-            <Phone className="size-7" strokeWidth={1.9} />
+            <Phone className="size-8" strokeWidth={1.9} />
           </button>
           <button
             onClick={() => setLogOpen(true)}
