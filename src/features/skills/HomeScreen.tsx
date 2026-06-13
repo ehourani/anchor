@@ -4,24 +4,37 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleUser,
+  LogOut,
   Menu,
   NotebookPen,
   Phone,
   Plus,
 } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
 
 import { SituationWheel } from '@/features/finder/SituationWheel'
 import { situations } from '@/features/finder/situations'
 import { SupportDrawer } from '@/features/crisis/SupportDrawer'
 import { LogSheet } from '@/features/logging/LogSheet'
+import { OceanBackdrop } from '@/components/OceanBackdrop'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { signOut } from '@/features/auth/auth'
 import { AddSkillSheet } from './AddSkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
 import { sampleSkills, type Skill } from './sampleSkills'
 import { createSkill, type NewSkillDraft } from './skills'
 
-// Placeholder until profiles land — this will come from the signed-in user.
-const userName = 'Sam'
+// A friendly first name for the greeting: Google's profile name if we have it,
+// otherwise the part of the email before the @, else a gentle fallback.
+function greetingName(user: User | null): string {
+  const meta = user?.user_metadata ?? {}
+  const full = (meta.full_name ?? meta.name) as string | undefined
+  if (full) return full.split(' ')[0]
+  const email = user?.email
+  if (email) return email.split('@')[0]
+  return 'there'
+}
 
 // Gentle, time-aware greeting.
 function timeGreeting(date: Date): string {
@@ -44,67 +57,14 @@ const headerIconButton =
 const bottomButton =
   'flex size-14 items-center justify-center rounded-full border border-white/60 bg-white/65 text-foreground/65 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md transition-colors hover:bg-white hover:text-foreground'
 
-// Rising bubbles, hand-placed so the motion feels composed rather than random.
-const bubbles = [
-  { left: '8%', size: 10, delay: '0s', duration: '8s' },
-  { left: '22%', size: 6, delay: '2.5s', duration: '10s' },
-  { left: '47%', size: 14, delay: '1s', duration: '9s' },
-  { left: '68%', size: 8, delay: '3.5s', duration: '11s' },
-  { left: '85%', size: 11, delay: '0.8s', duration: '8.5s' },
-  { left: '92%', size: 5, delay: '4s', duration: '12s' },
-]
-
-function OceanBackdrop() {
-  return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Depth gradient — pale sky surface fading into deeper water */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(198,72%,97%)] via-[hsl(193,58%,90%)] to-[hsl(189,48%,82%)]" />
-      {/* Soft caustics / sunlight, slowly drifting */}
-      <div className="animate-drift absolute -left-16 -top-10 size-72 rounded-full bg-white/50 blur-3xl" />
-      <div
-        className="animate-drift absolute -right-10 top-40 size-80 rounded-full bg-[hsl(186,70%,80%)]/40 blur-3xl"
-        style={{ animationDelay: '3s' }}
-      />
-      <div
-        className="animate-drift absolute bottom-10 left-1/4 size-72 rounded-full bg-[hsl(200,80%,88%)]/45 blur-3xl"
-        style={{ animationDelay: '6s' }}
-      />
-      {/* Rising bubbles */}
-      {bubbles.map((b, i) => (
-        <span
-          key={i}
-          className="animate-rise absolute bottom-24 rounded-full border border-white/60 bg-white/40"
-          style={{
-            left: b.left,
-            width: b.size,
-            height: b.size,
-            animationDelay: b.delay,
-            animationDuration: b.duration,
-          }}
-        />
-      ))}
-      {/* Sandy seabed — a soft mound settling the scene at the very bottom */}
-      <svg
-        className="absolute inset-x-0 bottom-0 h-48 w-full"
-        viewBox="0 0 1440 160"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M0 104 C 480 72, 960 72, 1440 96 L 1440 160 L 0 160 Z"
-          fill="hsl(40 56% 86%)"
-        />
-      </svg>
-    </div>
-  )
-}
-
 export function HomeScreen() {
+  const { user } = useAuth()
   const [selected, setSelected] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [openSkillId, setOpenSkillId] = useState<string | null>(null)
   // In-memory store for the mockup; becomes a Supabase-backed query once live.
   const [skills, setSkills] = useState<Skill[]>(sampleSkills)
@@ -167,9 +127,44 @@ export function HomeScreen() {
             </span>
           </div>
 
-          <button aria-label="Profile" className={headerIconButton}>
-            <CircleUser className="size-5" />
-          </button>
+          <div className="relative">
+            <button
+              aria-label="Account"
+              aria-expanded={profileOpen}
+              onClick={() => setProfileOpen((o) => !o)}
+              className={headerIconButton}
+            >
+              <CircleUser className="size-5" />
+            </button>
+
+            {profileOpen && (
+              <>
+                {/* Click-away scrim */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setProfileOpen(false)}
+                />
+                <div className="animate-fade-rise absolute right-0 top-11 z-50 w-60 rounded-2xl border border-white/60 bg-[hsl(196,54%,98%)]/95 p-4 shadow-[0_16px_40px_-16px_hsl(200_50%_40%_/_0.4)] backdrop-blur-md">
+                  <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                    Signed in as
+                  </p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+                    {user?.email ?? 'your account'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false)
+                      void signOut()
+                    }}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/70 bg-white/70 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
+                  >
+                    <LogOut className="size-4" />
+                    Sign out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </header>
 
         <div
@@ -215,7 +210,7 @@ export function HomeScreen() {
               {/* Section 1 — greeting, gentle reminder, a small invitation */}
               <section className="mt-5">
                 <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
-                  {timeGreeting(new Date())}, {userName}
+                  {timeGreeting(new Date())}, {greetingName(user)}
                 </h1>
                 <p className="mt-1.5 text-[0.95rem] text-foreground/60">
                   Your toolkit is here whenever you need it.
