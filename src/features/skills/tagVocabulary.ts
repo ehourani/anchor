@@ -48,8 +48,8 @@ export const tagVocabulary: CategoryMeta[] = [
     label: 'Approach',
     multi: true,
     required: false,
-    // Slugs must match the seeded `tags.slug` exactly (migration 0003) — the
-    // modality acronyms are stored lowercase in the DB.
-    options: ['dbt', 'cbt', 'act', 'mindfulness'],
+    // Slugs must match the seeded `tags.slug` exactly (migrations 0003 +
+    // 20260613_add_rodbt) — the modality acronyms are stored lowercase.
+    options: ['dbt', 'cbt', 'act', 'mindfulness', 'rodbt'],
   },
 ]
