@@ -14,9 +14,11 @@ import { SituationWheel } from '@/features/finder/SituationWheel'
 import { situations } from '@/features/finder/situations'
 import { SupportDrawer } from '@/features/crisis/SupportDrawer'
 import { LogSheet } from '@/features/logging/LogSheet'
+import { AddSkillSheet } from './AddSkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
-import { sampleSkills } from './sampleSkills'
+import { sampleSkills, type Skill } from './sampleSkills'
+import { createSkill, type NewSkillDraft } from './skills'
 
 // Placeholder until profiles land — this will come from the signed-in user.
 const userName = 'Sam'
@@ -90,10 +92,17 @@ export function HomeScreen() {
   const [expanded, setExpanded] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
   const [openSkillId, setOpenSkillId] = useState<string | null>(null)
+  // In-memory store for the mockup; becomes a Supabase-backed query once live.
+  const [skills, setSkills] = useState<Skill[]>(sampleSkills)
 
   const active = situations.find((s) => s.key === selected) ?? null
-  const openSkill = sampleSkills.find((s) => s.id === openSkillId) ?? null
+  const openSkill = skills.find((s) => s.id === openSkillId) ?? null
+
+  const handleCreate = (draft: NewSkillDraft) => {
+    setSkills((prev) => [...prev, createSkill(draft)])
+  }
 
   // Back steps out one level at a time: skill detail → list → home.
   const goBack = () => {
@@ -102,7 +111,7 @@ export function HomeScreen() {
   }
 
   const matches = active
-    ? sampleSkills
+    ? skills
         .filter((skill) =>
           skill.tags.some(
             (t) => t.category === 'situation' && t.label === active.key,
@@ -275,6 +284,7 @@ export function HomeScreen() {
             Each side button sits centered between the phone and the edge. */}
         <div className="relative mt-4 h-14 w-full">
           <button
+            onClick={() => setAddOpen(true)}
             aria-label="Add a coping skill"
             className={`${bottomButton} absolute left-1/4 top-0 -translate-x-1/2`}
           >
@@ -301,7 +311,13 @@ export function HomeScreen() {
       <LogSheet
         open={logOpen}
         onClose={() => setLogOpen(false)}
-        skills={sampleSkills}
+        skills={skills}
+      />
+      <AddSkillSheet
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreate={handleCreate}
+        defaultSituation={active?.key ?? null}
       />
     </div>
   )

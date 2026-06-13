@@ -3,7 +3,7 @@ import type { TagCategory } from './sampleSkills'
 
 // One soft pastel hue per taxonomy category, so tags read at a glance without
 // shouting. Tone deliberately gentle — these are quiet labels, not alerts.
-const categoryStyles: Record<TagCategory, string> = {
+export const categoryStyles: Record<TagCategory, string> = {
   situation: 'bg-[hsl(205,55%,94%)] text-[hsl(205,42%,38%)]',
   effort: 'bg-[hsl(36,62%,92%)] text-[hsl(30,52%,38%)]',
   setting: 'bg-[hsl(146,38%,92%)] text-[hsl(150,34%,30%)]',
