@@ -83,6 +83,18 @@ function OceanBackdrop() {
           }}
         />
       ))}
+      {/* Sandy seabed — a soft mound settling the scene at the very bottom */}
+      <svg
+        className="absolute inset-x-0 bottom-0 h-48 w-full"
+        viewBox="0 0 1440 160"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M0 104 C 480 72, 960 72, 1440 96 L 1440 160 L 0 160 Z"
+          fill="hsl(40 56% 86%)"
+        />
+      </svg>
     </div>
   )
 }
