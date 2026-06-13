@@ -3,13 +3,8 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { usageLogsRootKey } from '@/features/history/useUsageLogs'
 import type { Helpfulness } from './logging'
-
-// Per-user usage history cache key (no consumer yet — the history view will use
-// it; invalidating now is a harmless no-op that wires it up for later).
-export function usageLogsQueryKey(userId: string | undefined) {
-  return ['usage_logs', userId] as const
-}
 
 // Notes arrive a keystroke at a time, so coalesce reflection writes.
 const REFLECTION_DEBOUNCE_MS = 500
@@ -43,7 +38,7 @@ export function useUsageLogger() {
       pending
         .then(() =>
           queryClient.invalidateQueries({
-            queryKey: usageLogsQueryKey(user.id),
+            queryKey: usageLogsRootKey(user.id),
           }),
         )
         .catch((e) => console.error('Failed to log use:', e))
@@ -68,7 +63,7 @@ export function useUsageLogger() {
           if (error) throw error
           if (user) {
             queryClient.invalidateQueries({
-              queryKey: usageLogsQueryKey(user.id),
+              queryKey: usageLogsRootKey(user.id),
             })
           }
         } catch (e) {

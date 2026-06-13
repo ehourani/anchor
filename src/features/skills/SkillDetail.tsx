@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Check, LifeBuoy } from 'lucide-react'
+import { Check, ChevronRight, LifeBuoy } from 'lucide-react'
 
 import { type Helpfulness } from '@/features/logging/logging'
 import { useUsageLogger } from '@/features/logging/useUsageLogger'
 import { LogReflection } from '@/features/logging/LogReflection'
+import { useUsageLogs } from '@/features/history/useUsageLogs'
 import { TagChip } from './TagChip'
 import type { Skill, TagCategory } from './sampleSkills'
 
@@ -19,14 +20,20 @@ const groups: { category: TagCategory; label: string }[] = [
 export function SkillDetail({
   skill,
   onDone,
+  onViewHistory,
 }: {
   skill: Skill
   onDone: () => void
+  onViewHistory: () => void
 }) {
   const [logged, setLogged] = useState(false)
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
   const { startLog, saveReflection: persistReflection } = useUsageLogger()
+  // Powers the "past uses" link below; this query is shared (same key) with the
+  // skill-history view it navigates to, so that view opens already-cached.
+  const { data: pastLogs = [] } = useUsageLogs(skill.id)
+  const hasHistory = pastLogs.length > 0
 
   // Logging is instant; the reflection below is optional and can be edited freely.
   const handleLog = () => {
@@ -103,12 +110,23 @@ export function SkillDetail({
           </button>
         </div>
       ) : (
-        <button
-          onClick={handleLog}
-          className="mt-6 w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-        >
-          I used this
-        </button>
+        <div className="mt-6 space-y-2.5">
+          <button
+            onClick={handleLog}
+            className="w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            I used this
+          </button>
+          {hasHistory && (
+            <button
+              onClick={onViewHistory}
+              className="flex w-full items-center justify-center gap-1 rounded-2xl border border-white/70 bg-white/70 py-3 font-semibold text-foreground/75 shadow-sm transition-colors hover:bg-white hover:text-foreground"
+            >
+              See your past uses
+              <ChevronRight className="size-4" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

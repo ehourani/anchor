@@ -17,8 +17,11 @@ import { situations } from '@/features/finder/situations'
 import { SupportDrawer } from '@/features/crisis/SupportDrawer'
 import { LogSheet } from '@/features/logging/LogSheet'
 import { OceanBackdrop } from '@/components/OceanBackdrop'
+import { MenuDrawer } from '@/components/MenuDrawer'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { signOut } from '@/features/auth/auth'
+import { AllLogsScreen } from '@/features/history/AllLogsScreen'
+import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
 import { AddSkillSheet } from './AddSkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
@@ -56,6 +59,23 @@ function pickInvitation(skills: Skill[]): Skill | null {
   return lowEffort ?? skills[0] ?? null
 }
 
+// The app's screens. The wheel flow (home → situation → skill) and the history
+// views all live on one back-stack, so Back always steps out one level.
+type Screen =
+  | { k: 'home' }
+  | { k: 'situation'; key: string }
+  | { k: 'skill'; id: string }
+  | { k: 'all-skills' }
+  | { k: 'all-logs' }
+  | { k: 'skill-logs'; id: string }
+
+function screenKey(s: Screen): string {
+  if (s.k === 'situation') return `situation:${s.key}`
+  if (s.k === 'skill') return `skill:${s.id}`
+  if (s.k === 'skill-logs') return `skill-logs:${s.id}`
+  return s.k
+}
+
 // Shared style for the small circular navbar icon buttons (menu · profile).
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
@@ -64,44 +84,61 @@ const headerIconButton =
 const bottomButton =
   'flex size-14 items-center justify-center rounded-full border border-white/60 bg-white/65 text-foreground/65 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md transition-colors hover:bg-white hover:text-foreground'
 
+// Gentle fallback shown in a list slot while skills load / on error / when empty.
+function ListNotice({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
+      {children}
+    </div>
+  )
+}
+
 export function HomeScreen() {
   const { user } = useAuth()
-  const [selected, setSelected] = useState<string | null>(null)
+  const [stack, setStack] = useState<Screen[]>([{ k: 'home' }])
   const [expanded, setExpanded] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [openSkillId, setOpenSkillId] = useState<string | null>(null)
+
+  const screen = stack[stack.length - 1]
+  const push = (s: Screen) => setStack((st) => [...st, s])
+  const back = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st))
+  // The drawer's "All …" views reset to one level deep, so Back returns home.
+  const navTop = (s: Screen) => setStack([{ k: 'home' }, s])
 
   // Live, per-user skills from Supabase.
   const { data: skills = [], isLoading, isError } = useSkills()
   const createSkill = useCreateSkill()
-
-  const active = situations.find((s) => s.key === selected) ?? null
-  const openSkill = skills.find((s) => s.id === openSkillId) ?? null
   const invitation = pickInvitation(skills)
+
+  const activeSituation =
+    screen.k === 'situation'
+      ? situations.find((s) => s.key === screen.key) ?? null
+      : null
+  const openSkill =
+    screen.k === 'skill' ? skills.find((s) => s.id === screen.id) ?? null : null
+  const logsSkill =
+    screen.k === 'skill-logs'
+      ? skills.find((s) => s.id === screen.id) ?? null
+      : null
 
   const handleCreate = async (draft: NewSkillDraft) => {
     await createSkill.mutateAsync(draft)
   }
 
-  // Back steps out one level at a time: skill detail → list → home.
-  const goBack = () => {
-    if (openSkill) setOpenSkillId(null)
-    else setSelected(null)
-  }
-
-  const matches = active
+  const matches = activeSituation
     ? skills
         .filter((skill) =>
           skill.tags.some(
-            (t) => t.category === 'situation' && t.label === active.key,
+            (t) => t.category === 'situation' && t.label === activeSituation.key,
           ),
         )
         // In crisis, lead with the highest-priority steadying skills.
         .sort((a, b) =>
-          active.key === 'crisis'
+          activeSituation.key === 'crisis'
             ? (a.crisisPriority ?? 99) - (b.crisisPriority ?? 99)
             : 0,
         )
@@ -112,18 +149,22 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-6 pt-6">
-        {/* Navbar — menu · brand · profile (Back replaces menu in a situation) */}
+        {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
         <header className="relative flex h-9 items-center justify-between">
-          {active || openSkill ? (
+          {stack.length > 1 ? (
             <button
-              onClick={goBack}
+              onClick={back}
               className="flex items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
             >
               <ChevronLeft className="size-4" />
               Back
             </button>
           ) : (
-            <button aria-label="Menu" className={headerIconButton}>
+            <button
+              aria-label="Menu"
+              onClick={() => setMenuOpen(true)}
+              className={headerIconButton}
+            >
               <Menu className="size-5" />
             </button>
           )}
@@ -178,21 +219,76 @@ export function HomeScreen() {
         </header>
 
         <div
-          key={openSkillId ?? active?.key ?? 'home'}
+          key={screenKey(screen)}
           className="animate-fade-rise flex flex-1 flex-col"
         >
-          {openSkill ? (
+          {screen.k === 'skill' ? (
             /* Skill detail — full view of one skill */
-            <SkillDetail skill={openSkill} onDone={goBack} />
-          ) : active ? (
+            openSkill ? (
+              <SkillDetail
+                skill={openSkill}
+                onDone={back}
+                onViewHistory={() => push({ k: 'skill-logs', id: openSkill.id })}
+              />
+            ) : (
+              <div className="mt-5">
+                <ListNotice>Gathering this skill…</ListNotice>
+              </div>
+            )
+          ) : screen.k === 'skill-logs' ? (
+            logsSkill ? (
+              <SkillLogsScreen skill={logsSkill} />
+            ) : (
+              <div className="mt-5">
+                <ListNotice>Gathering your history…</ListNotice>
+              </div>
+            )
+          ) : screen.k === 'all-logs' ? (
+            <AllLogsScreen />
+          ) : screen.k === 'all-skills' ? (
+            /* All skills — the full toolkit, alphabetical */
+            <>
+              <div className="mt-5">
+                <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
+                  All skills
+                </h1>
+                <p className="mt-1 text-sm text-foreground/50">
+                  {skills.length} {skills.length === 1 ? 'skill' : 'skills'}
+                </p>
+              </div>
+              <div className="mt-4 space-y-3">
+                {isLoading ? (
+                  <ListNotice>Gathering your skills…</ListNotice>
+                ) : isError ? (
+                  <ListNotice>
+                    We couldn't load your skills just now. Try again in a moment.
+                  </ListNotice>
+                ) : skills.length === 0 ? (
+                  <ListNotice>
+                    Nothing here yet — you can add a skill with the + below.
+                  </ListNotice>
+                ) : (
+                  [...skills]
+                    .sort((a, b) => a.title.localeCompare(b.title))
+                    .map((skill) => (
+                      <SkillCard
+                        key={skill.id}
+                        skill={skill}
+                        onOpen={() => push({ k: 'skill', id: skill.id })}
+                      />
+                    ))
+                )}
+              </div>
+            </>
+          ) : screen.k === 'situation' && activeSituation ? (
             /* Filtered view — skills for the chosen situation */
             <>
               <div className="mt-5">
                 <p className="text-sm font-semibold uppercase tracking-wide text-foreground/45">
-                  {active.label}
+                  {activeSituation.label}
                 </p>
                 <h1 className="mt-1 font-display text-[1.6rem] font-semibold leading-tight text-foreground">
-                  {active.heading}
+                  {activeSituation.heading}
                 </h1>
                 <p className="mt-1 text-sm text-foreground/50">
                   {matches.length} {matches.length === 1 ? 'skill' : 'skills'}
@@ -200,24 +296,22 @@ export function HomeScreen() {
               </div>
               <div className="mt-4 space-y-3">
                 {isLoading ? (
-                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/55 backdrop-blur-md">
-                    Gathering your skills…
-                  </div>
+                  <ListNotice>Gathering your skills…</ListNotice>
                 ) : isError ? (
-                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
+                  <ListNotice>
                     We couldn't load your skills just now. Check your connection
                     and try again in a moment.
-                  </div>
+                  </ListNotice>
                 ) : matches.length === 0 ? (
-                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
+                  <ListNotice>
                     Nothing here yet — you can add a skill with the + below.
-                  </div>
+                  </ListNotice>
                 ) : (
                   matches.map((skill) => (
                     <SkillCard
                       key={skill.id}
                       skill={skill}
-                      onOpen={() => setOpenSkillId(skill.id)}
+                      onOpen={() => push({ k: 'skill', id: skill.id })}
                     />
                   ))
                 )}
@@ -247,7 +341,7 @@ export function HomeScreen() {
                       {invitation.description}
                     </p>
                     <button
-                      onClick={() => setOpenSkillId(invitation.id)}
+                      onClick={() => push({ k: 'skill', id: invitation.id })}
                       className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                     >
                       Try this
@@ -282,7 +376,7 @@ export function HomeScreen() {
                   <SituationWheel
                     expanded={expanded}
                     onToggle={() => setExpanded((e) => !e)}
-                    onSelect={setSelected}
+                    onSelect={(key) => push({ k: 'situation', key })}
                   />
                   {/* Fixed-height slot so the hint never reflows the buoy; the
                       two messages cross-fade, capped to the buoy's width. */}
@@ -335,17 +429,21 @@ export function HomeScreen() {
         </div>
       </div>
 
-      <SupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
-      <LogSheet
-        open={logOpen}
-        onClose={() => setLogOpen(false)}
-        skills={skills}
+      <MenuDrawer
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onAddSkill={() => setAddOpen(true)}
+        onLogUsage={() => setLogOpen(true)}
+        onAllSkills={() => navTop({ k: 'all-skills' })}
+        onAllLogs={() => navTop({ k: 'all-logs' })}
       />
+      <SupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <LogSheet open={logOpen} onClose={() => setLogOpen(false)} skills={skills} />
       <AddSkillSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onCreate={handleCreate}
-        defaultSituation={active?.key ?? null}
+        defaultSituation={screen.k === 'situation' ? screen.key : null}
       />
     </div>
   )
