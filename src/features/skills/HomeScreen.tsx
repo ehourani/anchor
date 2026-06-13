@@ -13,6 +13,7 @@ import {
 import { SituationWheel } from '@/features/finder/SituationWheel'
 import { situations } from '@/features/finder/situations'
 import { SupportDrawer } from '@/features/crisis/SupportDrawer'
+import { LogSheet } from '@/features/logging/LogSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
 import { sampleSkills } from './sampleSkills'
@@ -88,6 +89,7 @@ export function HomeScreen() {
   const [selected, setSelected] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
   const [openSkillId, setOpenSkillId] = useState<string | null>(null)
 
   const active = situations.find((s) => s.key === selected) ?? null
@@ -155,7 +157,7 @@ export function HomeScreen() {
         >
           {openSkill ? (
             /* Skill detail — full view of one skill */
-            <SkillDetail skill={openSkill} />
+            <SkillDetail skill={openSkill} onDone={goBack} />
           ) : active ? (
             /* Filtered view — skills for the chosen situation */
             <>
@@ -205,11 +207,11 @@ export function HomeScreen() {
                   <p className="mt-1 font-display text-base font-semibold text-foreground">
                     {invitation.title}
                   </p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-foreground/60">
-                    {invitation.blurb}
+                  <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
+                    {invitation.description}
                   </p>
                   <button
-                    onClick={() => setSelected('life-building')}
+                    onClick={() => setOpenSkillId(invitation.id)}
                     className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                   >
                     Try this
@@ -286,6 +288,7 @@ export function HomeScreen() {
             <Phone className="size-6" strokeWidth={1.75} />
           </button>
           <button
+            onClick={() => setLogOpen(true)}
             aria-label="Log a coping skill"
             className={`${bottomButton} absolute left-3/4 top-0 -translate-x-1/2`}
           >
@@ -295,6 +298,11 @@ export function HomeScreen() {
       </div>
 
       <SupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <LogSheet
+        open={logOpen}
+        onClose={() => setLogOpen(false)}
+        skills={sampleSkills}
+      />
     </div>
   )
 }

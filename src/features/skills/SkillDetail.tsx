@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Check, LifeBuoy } from 'lucide-react'
 
+import { logSkillUse, type Helpfulness } from '@/features/logging/logging'
+import { LogReflection } from '@/features/logging/LogReflection'
 import { TagChip } from './TagChip'
 import type { Skill, TagCategory } from './sampleSkills'
 
@@ -13,9 +15,35 @@ const groups: { category: TagCategory; label: string }[] = [
   { category: 'modality', label: 'Approach' },
 ]
 
-export function SkillDetail({ skill }: { skill: Skill }) {
-  // Optimistic, instant, no pressure — a placeholder for the logging flow.
+export function SkillDetail({
+  skill,
+  onDone,
+}: {
+  skill: Skill
+  onDone: () => void
+}) {
   const [logged, setLogged] = useState(false)
+  const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
+  const [note, setNote] = useState('')
+
+  // Logging is instant; the reflection below is optional and can be edited freely.
+  const handleLog = () => {
+    setLogged(true)
+    void logSkillUse({ skillId: skill.id, helpfulness: null, note: '' })
+  }
+
+  const saveReflection = (
+    nextHelpfulness: Helpfulness | null,
+    nextNote: string,
+  ) => {
+    setHelpfulness(nextHelpfulness)
+    setNote(nextNote)
+    void logSkillUse({
+      skillId: skill.id,
+      helpfulness: nextHelpfulness,
+      note: nextNote,
+    })
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -30,7 +58,7 @@ export function SkillDetail({ skill }: { skill: Skill }) {
           {skill.title}
         </h1>
         <p className="mt-2 text-[0.97rem] leading-relaxed text-foreground/70">
-          {skill.blurb}
+          {skill.description}
         </p>
       </div>
 
@@ -56,13 +84,29 @@ export function SkillDetail({ skill }: { skill: Skill }) {
       <div className="flex-1" />
 
       {logged ? (
-        <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
-          <Check className="size-5" />
-          <span className="font-semibold">Logged — gently done.</span>
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center justify-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
+            <Check className="size-5" />
+            <span className="font-semibold">Logged — gently done.</span>
+          </div>
+
+          {/* Optional, skippable reflection — never required, never a score. */}
+          <LogReflection
+            helpfulness={helpfulness}
+            note={note}
+            onChange={saveReflection}
+          />
+
+          <button
+            onClick={onDone}
+            className="w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            Done
+          </button>
         </div>
       ) : (
         <button
-          onClick={() => setLogged(true)}
+          onClick={handleLog}
           className="mt-6 w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
         >
           I used this

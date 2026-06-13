@@ -21,8 +21,8 @@ export function SkillCard({
           <h3 className="font-display text-lg font-semibold leading-snug text-foreground">
             {skill.title}
           </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {skill.blurb}
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {skill.description}
           </p>
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {skill.tags.map((tag) => (
