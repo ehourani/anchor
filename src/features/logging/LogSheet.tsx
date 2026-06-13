@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Check, ChevronRight, X } from 'lucide-react'
 
 import type { Skill } from '@/features/skills/sampleSkills'
-import { logSkillUse, type Helpfulness } from './logging'
+import { type Helpfulness } from './logging'
+import { useUsageLogger } from './useUsageLogger'
 import { LogReflection } from './LogReflection'
 
 // Quick "log a skill you used" sheet, opened from the notebook button. Pick a
@@ -19,6 +20,7 @@ export function LogSheet({
   const [skillId, setSkillId] = useState<string | null>(null)
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
+  const { startLog, saveReflection: persistReflection } = useUsageLogger()
 
   // Fresh start each time the sheet opens.
   useEffect(() => {
@@ -40,13 +42,13 @@ export function LogSheet({
 
   const pick = (id: string) => {
     setSkillId(id)
-    void logSkillUse({ skillId: id, helpfulness: null, note: '' })
+    startLog(id)
   }
 
   const saveReflection = (h: Helpfulness | null, n: string) => {
     setHelpfulness(h)
     setNote(n)
-    if (skillId) void logSkillUse({ skillId, helpfulness: h, note: n })
+    if (skillId) persistReflection(h, n)
   }
 
   return (

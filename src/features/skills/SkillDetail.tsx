@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Check, LifeBuoy } from 'lucide-react'
 
-import { logSkillUse, type Helpfulness } from '@/features/logging/logging'
+import { type Helpfulness } from '@/features/logging/logging'
+import { useUsageLogger } from '@/features/logging/useUsageLogger'
 import { LogReflection } from '@/features/logging/LogReflection'
 import { TagChip } from './TagChip'
 import type { Skill, TagCategory } from './sampleSkills'
@@ -25,11 +26,12 @@ export function SkillDetail({
   const [logged, setLogged] = useState(false)
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
+  const { startLog, saveReflection: persistReflection } = useUsageLogger()
 
   // Logging is instant; the reflection below is optional and can be edited freely.
   const handleLog = () => {
     setLogged(true)
-    void logSkillUse({ skillId: skill.id, helpfulness: null, note: '' })
+    startLog(skill.id)
   }
 
   const saveReflection = (
@@ -38,11 +40,7 @@ export function SkillDetail({
   ) => {
     setHelpfulness(nextHelpfulness)
     setNote(nextNote)
-    void logSkillUse({
-      skillId: skill.id,
-      helpfulness: nextHelpfulness,
-      note: nextNote,
-    })
+    persistReflection(nextHelpfulness, nextNote)
   }
 
   return (
