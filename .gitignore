@@ -27,3 +27,6 @@ npm-debug.log*
 skills-lock.json
 .claude/settings.local.json
 .claude/skills/
+
+# Agent working notes / checkpoints
+agent-docs/
