@@ -10,7 +10,7 @@ export function SkillLogsScreen({ skill }: { skill: Skill }) {
     <>
       <div className="mt-5">
         <p className="text-sm font-semibold uppercase tracking-wide text-foreground/45">
-          Past uses
+          Reflections
         </p>
         <h1 className="mt-1 font-display text-[1.6rem] font-semibold leading-tight text-foreground">
           {skill.title}

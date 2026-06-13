@@ -56,7 +56,7 @@ export function SituationWheel({
 
   return (
     <div
-      className={`relative mx-auto aspect-square w-full max-w-[16rem] ${
+      className={`relative mx-auto aspect-square w-full max-w-[18.5rem] ${
         expanded ? '' : 'animate-breathe'
       }`}
     >
@@ -121,7 +121,7 @@ export function SituationWheel({
         {situations.map((s) => (
           <div
             key={s.key}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300"
+            className="absolute flex max-w-[4.75rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300"
             style={{ ...labelPos(s.angle), opacity: expanded ? 1 : 0 }}
           >
             <s.Icon className="size-6" strokeWidth={1.75} style={{ color: s.ink }} />

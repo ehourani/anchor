@@ -22,6 +22,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { signOut } from '@/features/auth/auth'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
+import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
@@ -125,6 +126,13 @@ export function HomeScreen() {
   const updateSkill = useUpdateSkill()
   const invitation = pickInvitation(skills)
 
+  // What's worked, from the user's own reflections. Unrated skills sit at a
+  // neutral midpoint so lists stay alphabetical until ratings exist.
+  const usageStats = useSkillUsageStats()
+  const NEUTRAL_HELP = 3
+  const helpScore = (id: string) =>
+    usageStats.get(id)?.helpfulnessAvg ?? NEUTRAL_HELP
+
   const activeSituation =
     screen.k === 'situation'
       ? situations.find((s) => s.key === screen.key) ?? null
@@ -149,22 +157,25 @@ export function HomeScreen() {
             (t) => t.category === 'situation' && t.label === activeSituation.key,
           ),
         )
-        // Starred skills float to the top; in crisis, lead with the highest-
-        // priority steadying skills among them.
+        // Starred first; in crisis the curated priority order leads; then what's
+        // worked best (by your reflections); then alphabetical.
         .sort(
           (a, b) =>
             Number(b.isFavorite) - Number(a.isFavorite) ||
             (activeSituation.key === 'crisis'
               ? (a.crisisPriority ?? 99) - (b.crisisPriority ?? 99)
-              : 0),
+              : 0) ||
+            helpScore(b.id) - helpScore(a.id) ||
+            a.title.localeCompare(b.title),
         )
     : []
   const visibleMatches = matches.filter((s) => matchesFilters(s, filters))
 
-  // The full toolkit, starred-first then alphabetical, with filters applied.
+  // The full toolkit: starred first, then most-helpful, then alphabetical.
   const allSorted = [...skills].sort(
     (a, b) =>
       Number(b.isFavorite) - Number(a.isFavorite) ||
+      helpScore(b.id) - helpScore(a.id) ||
       a.title.localeCompare(b.title),
   )
   const visibleAll = allSorted.filter((s) => matchesFilters(s, filters))
@@ -271,7 +282,7 @@ export function HomeScreen() {
               <SkillLogsScreen skill={logsSkill} />
             ) : (
               <div className="mt-5">
-                <ListNotice>Gathering your history…</ListNotice>
+                <ListNotice>Gathering your reflections…</ListNotice>
               </div>
             )
           ) : screen.k === 'all-logs' ? (

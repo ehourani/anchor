@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronRight, X } from 'lucide-react'
 
 import type { Skill } from '@/features/skills/sampleSkills'
+import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { type Helpfulness } from './logging'
 import { useUsageLogger } from './useUsageLogger'
 import { LogReflection } from './LogReflection'
@@ -21,6 +22,20 @@ export function LogSheet({
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
   const { startLog, saveReflection: persistReflection } = useUsageLogger()
+  const usageStats = useSkillUsageStats()
+
+  // Most recently used skills first (the likely pick is on top), then the rest
+  // alphabetically. ISO timestamps compare chronologically as plain strings.
+  const ordered = useMemo(() => {
+    return [...skills].sort((a, b) => {
+      const ta = usageStats.get(a.id)?.lastUsedAt
+      const tb = usageStats.get(b.id)?.lastUsedAt
+      if (ta && tb) return tb.localeCompare(ta)
+      if (ta) return -1
+      if (tb) return 1
+      return a.title.localeCompare(b.title)
+    })
+  }, [skills, usageStats])
 
   // Fresh start each time the sheet opens.
   useEffect(() => {
@@ -73,7 +88,7 @@ export function LogSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              {selected ? selected.title : 'What did you use?'}
+              {selected ? selected.title : 'What skill did you use?'}
             </h2>
             <button
               onClick={onClose}
@@ -106,7 +121,7 @@ export function LogSheet({
             </div>
           ) : (
             <div className="space-y-2">
-              {skills.map((s) => (
+              {ordered.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => pick(s.id)}

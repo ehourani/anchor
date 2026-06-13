@@ -43,14 +43,14 @@ export function UsageLogList({
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/55 backdrop-blur-md">
-        Gathering your history…
+        Gathering your reflections…
       </div>
     )
   }
   if (isError) {
     return (
       <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
-        We couldn't load your history just now. Try again in a moment.
+        We couldn't load your reflections just now. Try again in a moment.
       </div>
     )
   }

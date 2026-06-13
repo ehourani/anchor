@@ -1,4 +1,4 @@
-import { ChevronRight, Star } from 'lucide-react'
+import { ChevronRight, Heart } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -34,12 +34,12 @@ export function SkillCard({
         aria-label={
           skill.isFavorite ? 'Remove from favorites' : 'Add to favorites'
         }
-        className="absolute right-2 top-2 z-10 rounded-full p-1.5 text-foreground/30 transition-colors hover:bg-black/5 hover:text-amber-500"
+        className="absolute right-2 top-2 z-10 rounded-full p-1.5 text-foreground/30 transition-colors hover:bg-black/5 hover:text-red-400"
       >
-        <Star
+        <Heart
           className={cn(
             'size-5',
-            skill.isFavorite && 'fill-amber-400 text-amber-400',
+            skill.isFavorite && 'fill-red-500 text-red-500',
           )}
         />
       </button>

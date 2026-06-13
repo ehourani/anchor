@@ -72,7 +72,7 @@ export function MenuDrawer({
           </button>
           <button className={item} onClick={run(onLogUsage)}>
             <NotebookPen className="size-5 text-foreground/55" />
-            Log a skill usage
+            Log a skill use
           </button>
 
           <div className="my-2 h-px bg-foreground/10" />
@@ -83,7 +83,7 @@ export function MenuDrawer({
           </button>
           <button className={item} onClick={run(onAllLogs)}>
             <ScrollText className="size-5 text-foreground/55" />
-            All skill usage logs
+            Skill reflections
           </button>
         </nav>
       </div>

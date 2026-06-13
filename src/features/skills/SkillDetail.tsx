@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronRight, LifeBuoy, Pencil, Star, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Heart, LifeBuoy, Pencil, Trash2 } from 'lucide-react'
 
 import { type Helpfulness } from '@/features/logging/logging'
 import { useUsageLogger } from '@/features/logging/useUsageLogger'
@@ -102,12 +102,12 @@ export function SkillDetail({
               aria-label={
                 skill.isFavorite ? 'Remove from favorites' : 'Add to favorites'
               }
-              className="rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-amber-500"
+              className="rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-red-400"
             >
-              <Star
+              <Heart
                 className={
                   skill.isFavorite
-                    ? 'size-6 fill-amber-400 text-amber-400'
+                    ? 'size-6 fill-red-500 text-red-500'
                     : 'size-6'
                 }
               />
@@ -174,7 +174,7 @@ export function SkillDetail({
               onClick={onViewHistory}
               className="flex w-full items-center justify-center gap-1 rounded-2xl border border-white/70 bg-white/70 py-3 font-semibold text-foreground/75 shadow-sm transition-colors hover:bg-white hover:text-foreground"
             >
-              See your past uses
+              See your reflections
               <ChevronRight className="size-4" />
             </button>
           )}
@@ -205,8 +205,8 @@ export function SkillDetail({
                 Remove “{skill.title}”?
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">
-                It'll be taken out of your toolkit. This also removes its past
-                uses from your history, and can't be undone.
+                It'll be taken out of your toolkit, along with its reflections,
+                and can't be undone.
               </p>
               <div className="mt-5 space-y-2.5">
                 <button

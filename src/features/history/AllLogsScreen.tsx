@@ -8,7 +8,7 @@ export function AllLogsScreen() {
     <>
       <div className="mt-5">
         <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
-          Your skill uses
+          Skill reflections
         </h1>
         <p className="mt-1 text-sm text-foreground/50">
           A gentle record of when you've reached for a skill.
