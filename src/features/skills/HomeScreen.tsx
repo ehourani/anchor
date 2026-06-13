@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Anchor,
   ChevronLeft,
@@ -22,8 +23,9 @@ import { signOut } from '@/features/auth/auth'
 import { AddSkillSheet } from './AddSkillSheet'
 import { SkillCard } from './SkillCard'
 import { SkillDetail } from './SkillDetail'
-import { sampleSkills, type Skill } from './sampleSkills'
+import type { Skill } from './sampleSkills'
 import { createSkill, type NewSkillDraft } from './skills'
+import { skillsQueryKey, useSkills } from './useSkills'
 
 // A friendly first name for the greeting: Google's profile name if we have it,
 // otherwise the part of the email before the @, else a gentle fallback.
@@ -45,9 +47,14 @@ function timeGreeting(date: Date): string {
   return 'Hello'
 }
 
-// A softly-suggested skill to try today. Static placeholder for the mockup;
-// later this could rotate from the user's gentler, lower-effort skills.
-const invitation = sampleSkills.find((s) => s.id === 'walk')!
+// A softly-suggested skill to try today — a gentle, low-effort one from the
+// user's own toolkit, falling back to whatever's first.
+function pickInvitation(skills: Skill[]): Skill | null {
+  const lowEffort = skills.find((s) =>
+    s.tags.some((t) => t.category === 'effort' && t.label === 'low'),
+  )
+  return lowEffort ?? skills[0] ?? null
+}
 
 // Shared style for the small circular navbar icon buttons (menu · profile).
 const headerIconButton =
@@ -66,14 +73,23 @@ export function HomeScreen() {
   const [addOpen, setAddOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [openSkillId, setOpenSkillId] = useState<string | null>(null)
-  // In-memory store for the mockup; becomes a Supabase-backed query once live.
-  const [skills, setSkills] = useState<Skill[]>(sampleSkills)
+
+  // Live, per-user skills from Supabase.
+  const queryClient = useQueryClient()
+  const { data: skills = [], isLoading, isError } = useSkills()
 
   const active = situations.find((s) => s.key === selected) ?? null
   const openSkill = skills.find((s) => s.id === openSkillId) ?? null
+  const invitation = pickInvitation(skills)
 
   const handleCreate = (draft: NewSkillDraft) => {
-    setSkills((prev) => [...prev, createSkill(draft)])
+    // Bridge until writes land (#2): drop the new skill into the cache so the
+    // add flow stays usable. This is optimistic-only — no DB insert yet, so it
+    // won't survive a refetch. Becomes a real insert + invalidation next.
+    const created = createSkill(draft)
+    queryClient.setQueryData<Skill[]>(skillsQueryKey(user?.id), (prev) =>
+      prev ? [...prev, created] : [created],
+    )
   }
 
   // Back steps out one level at a time: skill detail → list → home.
@@ -189,7 +205,16 @@ export function HomeScreen() {
                 </p>
               </div>
               <div className="mt-4 space-y-3">
-                {matches.length === 0 ? (
+                {isLoading ? (
+                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/55 backdrop-blur-md">
+                    Gathering your skills…
+                  </div>
+                ) : isError ? (
+                  <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
+                    We couldn't load your skills just now. Check your connection
+                    and try again in a moment.
+                  </div>
+                ) : matches.length === 0 ? (
                   <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
                     Nothing here yet — you can add a skill with the + below.
                   </div>
@@ -216,24 +241,26 @@ export function HomeScreen() {
                   Your toolkit is here whenever you need it.
                 </p>
 
-                <div className="mt-4 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
-                  <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                    A small invitation
-                  </p>
-                  <p className="mt-1 font-display text-base font-semibold text-foreground">
-                    {invitation.title}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
-                    {invitation.description}
-                  </p>
-                  <button
-                    onClick={() => setOpenSkillId(invitation.id)}
-                    className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-                  >
-                    Try this
-                    <ChevronRight className="size-4" />
-                  </button>
-                </div>
+                {invitation && (
+                  <div className="mt-4 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
+                    <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                      A small invitation
+                    </p>
+                    <p className="mt-1 font-display text-base font-semibold text-foreground">
+                      {invitation.title}
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
+                      {invitation.description}
+                    </p>
+                    <button
+                      onClick={() => setOpenSkillId(invitation.id)}
+                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                    >
+                      Try this
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                )}
               </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
