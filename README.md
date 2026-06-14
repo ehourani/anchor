@@ -2,18 +2,20 @@
 
 A personal, mobile-friendly toolkit for finding and tracking healthy coping skills — built to support eating disorder recovery by making the right skill fast to reach in a moment of need.
 
-> **Status:** MVP in development.
+> **Status:** MVP complete — deployed as an installable PWA and in early personal/closed testing.
 
 ## What it does
 
-- Build a personal library of coping skills, each tagged by situation, effort, setting, senses, and (optionally) therapy modality.
+- Build a personal library of coping skills, each tagged by situation, effort, setting, senses, and (optionally) therapy modality (DBT / CBT / ACT / RO-DBT). Add, edit, delete, and favorite skills.
 - Find the right skill in seconds through fast, faceted filtering.
-- A dedicated **crisis mode** that surfaces a small, pre-ordered set of go-to skills instantly — no filtering required.
-- Log when you use a skill, with optional, low-pressure reflection on what helped.
-- Review your history to notice patterns over time.
-- Export your data anytime (CSV / JSON).
+- A dedicated **crisis mode** that surfaces a small, pre-ordered set of go-to skills instantly — no filtering required — with drag-to-reorder and crisis-support links always reachable.
+- Log when you use a skill, with optional, low-pressure reflection (helpfulness + a note); edit or delete past reflections anytime.
+- Review your history to notice what's helped over time — surfaced gently, never as a score or streak.
+- A guided **first-run onboarding** to name yourself, add a few skills, and set up your crisis set.
+- Manage your **account & data**: change your password, export everything (JSON / CSV), or permanently delete your account and all data.
+- Installable to your home screen as a **PWA** (the app shell works offline).
 
-All data is private to each user.
+All data is private to each user, enforced at the database layer by Row-Level Security.
 
 ## Tech stack
 
@@ -22,8 +24,10 @@ All data is private to each user.
 | Frontend | Vite + React + TypeScript |
 | UI | Tailwind CSS + shadcn/ui |
 | Data fetching / caching | TanStack Query |
+| Drag & drop | dnd-kit (crisis-set reordering) |
+| PWA | vite-plugin-pwa (installable, offline app shell) |
 | Backend | Supabase (Postgres, Auth, Row-Level Security) — no custom API server |
-| Hosting | Static frontend (Vercel / Netlify / Cloudflare Pages) + Supabase cloud |
+| Hosting | Static frontend on Vercel + Supabase cloud |
 
 See [`PROJECT.md`](./PROJECT.md) for the full product and design context, and [`CLAUDE.md`](./CLAUDE.md) for working conventions.
 
@@ -75,13 +79,15 @@ The anon key is safe to ship — every table is guarded by Row-Level Security. *
 src/                  # React app, organized by feature
   lib/                # Supabase client + TanStack Query setup
   types/database.ts   # generated from the schema
-  features/           # auth, skills, finder, crisis, logging, history
-  components/ui/       # shadcn/ui components
-  hooks/              # shared query/mutation hooks
+  features/           # auth, onboarding, skills, finder, crisis, logging, history, account
+  components/         # shared UI (OceanBackdrop, MenuDrawer) + ui/ (shadcn)
+public/               # PWA icons + favicon, and public legal pages (privacy.html, terms.html, legal.css)
+scripts/              # generate-icons.mjs (PWA icons) + one-off/ (data-backfill tooling)
 supabase/             # the database, as code
-  migrations/         # tables + RLS + vocabulary + signup trigger (versioned SQL)
+  migrations/         # tables + RLS + seeded vocabulary + signup trigger + RPCs (versioned SQL)
   seed.sql            # local-only convenience data (vocabulary lives in migration 0003)
   functions/          # Edge Functions (none required for MVP)
+vercel.json           # clean URLs (so /privacy and /terms resolve)
 ```
 
 ## Scripts
@@ -91,12 +97,17 @@ supabase/             # the database, as code
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
 | `npm run preview` | Preview the production build |
+| `npm run gen:icons` | Regenerate the PWA icon set from the anchor mark |
 | `supabase gen types typescript --linked` | Regenerate DB types after a schema change |
 
 ## Privacy & safety
 
-This app handles sensitive recovery data. Each user can only ever see their own skills and logs, enforced at the database layer by Row-Level Security. Nothing is shared by default, and users can export their data at any time. A link to crisis support is always reachable within the app.
+This app handles sensitive recovery data. Each user can only ever see their own skills and logs, enforced at the database layer by Row-Level Security. Nothing is shared by default; users can export their data as JSON/CSV or delete their account and all data at any time. A crisis-support link — the **National Alliance for Eating Disorders** helpline and the **988 Suicide & Crisis Lifeline** (US) — is always reachable, including from crisis mode. A public privacy policy and terms of service are published as standalone pages (`/privacy` and `/terms`, also linked from the in-app Account & data screen).
 
-## Not in the MVP
+Anchor is a self-help tool — not a medical device, a substitute for professional care, or an emergency service.
 
-Social sharing, gamification/streaks, mood visualizations, push notifications, therapist integration, AI recommendations, and offline support are intentionally out of scope for the first version. See [`PROJECT.md`](./PROJECT.md) for the full anti-scope and roadmap.
+## Roadmap & anti-scope
+
+Intentionally **out of scope** (by design, for this audience): social sharing, gamification / streaks, mood or urge-intensity tracking, food / calorie / weight tracking, numeric targets, and usage pressure of any kind.
+
+Potential **future directions** being explored: email/push notifications, native apps, a personalization/recommendation layer, and a clinician-facing portal (a possible B2B2C direction). See [`PROJECT.md`](./PROJECT.md) for the full product context.
