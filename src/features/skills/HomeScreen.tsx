@@ -129,6 +129,9 @@ export function HomeScreen() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   const screen = stack[stack.length - 1]
+  // The home screen is pinned to the viewport so the buoy area can flex-shrink
+  // to fit; every other screen grows naturally and the page scrolls.
+  const isHome = screen.k === 'home'
   const push = (s: Screen) => setStack((st) => [...st, s])
   const back = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st))
   // Tapping the brand always returns to a fresh home (and folds the wheel back).
@@ -206,9 +209,13 @@ export function HomeScreen() {
     <div className="relative min-h-[100dvh]">
       <OceanBackdrop />
 
-      <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]">
+      <div
+        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
+          isHome ? 'h-[100dvh] overflow-hidden' : 'min-h-[100dvh]'
+        }`}
+      >
         {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
-        <header className="relative flex h-9 items-center justify-between">
+        <header className="relative flex h-9 shrink-0 items-center justify-between">
           {stack.length > 1 ? (
             <button
               onClick={back}
@@ -292,7 +299,7 @@ export function HomeScreen() {
 
         <div
           key={screenKey(screen)}
-          className="animate-fade-rise flex flex-1 flex-col"
+          className="animate-fade-rise flex min-h-0 flex-1 flex-col"
         >
           {screen.k === 'crisis' ? (
             /* Crisis mode — calm, no-filtering surface + support links */
@@ -421,7 +428,7 @@ export function HomeScreen() {
             /* Home — greeting section, then the anchor section */
             <>
               {/* Section 1 — greeting, gentle reminder, a small invitation */}
-              <section className="mt-5">
+              <section className="mt-5 shrink-0">
                 <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
                   {timeGreeting(new Date())}, {greetingName(user)}
                 </h1>
@@ -452,10 +459,10 @@ export function HomeScreen() {
               </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
-              <section className="mt-5 flex flex-1 flex-col">
+              <section className="mt-4 flex min-h-0 flex-1 flex-col">
                 {/* Heading cross-fades between the resting + active prompts in
                     the same slot and the same format. */}
-                <div className="relative h-9">
+                <div className="relative h-9 shrink-0">
                   <h2
                     className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
                       expanded ? 'opacity-0' : 'opacity-100'
@@ -472,38 +479,42 @@ export function HomeScreen() {
                   </h2>
                 </div>
 
-                <div className="flex flex-1 flex-col items-center justify-center pb-12">
-                  <SituationWheel
-                    expanded={expanded}
-                    onToggle={() => setExpanded((e) => !e)}
-                    onSelect={(key) => {
-                      // "In crisis" goes straight to crisis mode — no filtering.
-                      if (key === 'crisis') {
-                        push({ k: 'crisis' })
-                        return
-                      }
-                      setFilters(emptyFilters())
-                      push({ k: 'situation', key })
-                    }}
-                  />
-                  {/* Fixed-height slot so the hint never reflows the buoy; the
-                      two messages cross-fade, capped to the buoy's width. */}
-                  <div className="relative mt-1 h-12 w-full">
-                    <p
-                      className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
-                        expanded ? 'opacity-0' : 'opacity-100'
-                      }`}
-                    >
-                      Tap the anchor when you're ready
-                    </p>
-                    <p
-                      className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
-                        expanded ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    >
-                      Pick one that would help, or tap the anchor again to go back
-                    </p>
+                {/* The buoy fills the leftover space as a centered square, so on
+                    short screens it shrinks to fit instead of overflowing at a
+                    fixed size and colliding with the bottom bar. */}
+                <div className="relative min-h-0 flex-1">
+                  <div className="absolute inset-0 m-auto aspect-square max-h-full max-w-[18.5rem]">
+                    <SituationWheel
+                      expanded={expanded}
+                      onToggle={() => setExpanded((e) => !e)}
+                      onSelect={(key) => {
+                        // "In crisis" goes straight to crisis mode — no filtering.
+                        if (key === 'crisis') {
+                          push({ k: 'crisis' })
+                          return
+                        }
+                        setFilters(emptyFilters())
+                        push({ k: 'situation', key })
+                      }}
+                    />
                   </div>
+                </div>
+                {/* Fixed-height slot below the buoy; the two messages cross-fade. */}
+                <div className="relative mt-2 h-12 w-full shrink-0">
+                  <p
+                    className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
+                      expanded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Tap the anchor when you're ready
+                  </p>
+                  <p
+                    className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
+                      expanded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    Pick one that would help, or tap the anchor again to go back
+                  </p>
                 </div>
               </section>
             </>

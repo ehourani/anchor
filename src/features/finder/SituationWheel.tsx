@@ -56,9 +56,7 @@ export function SituationWheel({
 
   return (
     <div
-      className={`relative mx-auto aspect-square w-full max-w-[18.5rem] ${
-        expanded ? '' : 'animate-breathe'
-      }`}
+      className={`relative size-full ${expanded ? '' : 'animate-breathe'}`}
     >
       <svg
         viewBox="-110 -110 220 220"
@@ -133,13 +131,12 @@ export function SituationWheel({
             </span>
           </div>
         ))}
-        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2">
-          <Anchor
-            className={`text-foreground transition-all duration-[360ms] ${
-              expanded ? 'size-16' : 'size-20'
-            }`}
-            strokeWidth={1.5}
-          />
+        <div
+          className={`absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[width,height] duration-[360ms] ${
+            expanded ? 'size-[21%]' : 'size-[27%]'
+          }`}
+        >
+          <Anchor className="size-full text-foreground" strokeWidth={1.5} />
         </div>
       </div>
     </div>
