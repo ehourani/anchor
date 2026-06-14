@@ -24,6 +24,15 @@ import { CrisisSetupSheet } from '@/features/crisis/CrisisSetupSheet'
 // so it never shows again. Everything is skippable — never a wall.
 const STEP_COUNT = 5
 
+// Large, centered brand mark for the welcome + name steps.
+function AnchorLogo() {
+  return (
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-primary/15 text-primary">
+      <Anchor className="size-12" strokeWidth={1.75} />
+    </span>
+  )
+}
+
 export function OnboardingFlow() {
   const { user } = useAuth()
   const { data: skills = [] } = useSkills()
@@ -63,6 +72,8 @@ export function OnboardingFlow() {
   const next = () => setStep((s) => Math.min(s + 1, STEP_COUNT - 1))
   const back = () => setStep((s) => Math.max(s - 1, 0))
   const isLast = step === STEP_COUNT - 1
+  // The name step is required — both fields before Continue unlocks.
+  const nameValid = first.trim().length > 0 && last.trim().length > 0
 
   const inputClass =
     'w-full rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
@@ -100,8 +111,9 @@ export function OnboardingFlow() {
           className="animate-fade-rise flex min-h-0 flex-1 flex-col justify-center py-8"
         >
           {step === 0 && (
-            <div>
-              <h1 className="font-display text-3xl font-semibold leading-tight text-foreground">
+            <div className="text-center">
+              <AnchorLogo />
+              <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-foreground">
                 Hello{first ? `, ${first}` : ''}.
               </h1>
               <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
@@ -113,27 +125,28 @@ export function OnboardingFlow() {
           )}
 
           {step === 1 && (
-            <div>
-              <h1 className="font-display text-2xl font-semibold leading-tight text-foreground">
+            <div className="text-center">
+              <AnchorLogo />
+              <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
                 First, what should we call you?
               </h1>
               <p className="mt-2 text-sm text-foreground/60">
-                Just for a warm hello when you open the app. Optional.
+                Just for a warm hello when you open the app.
               </p>
-              <div className="mt-5 space-y-2.5">
+              <div className="mt-5 flex gap-2.5 text-left">
                 <input
                   value={first}
                   onChange={(e) => setFirst(e.target.value)}
                   placeholder="First name"
                   autoComplete="given-name"
-                  className={inputClass}
+                  className={`${inputClass} flex-1`}
                 />
                 <input
                   value={last}
                   onChange={(e) => setLast(e.target.value)}
                   placeholder="Last name"
                   autoComplete="family-name"
-                  className={inputClass}
+                  className={`${inputClass} flex-1`}
                 />
               </div>
             </div>
@@ -213,7 +226,7 @@ export function OnboardingFlow() {
                 className="mt-3 flex shrink-0 w-full items-center justify-center gap-2 rounded-2xl border border-[hsl(8,64%,58%)]/40 bg-[hsl(10,76%,93%)]/60 py-3 text-sm font-semibold text-[hsl(8,50%,42%)] transition-colors hover:bg-[hsl(10,76%,93%)]"
               >
                 <LifeBuoy className="size-4" />
-                Choose &amp; reorder crisis skills
+                Update crisis skills
               </button>
             </div>
           )}
@@ -253,8 +266,8 @@ export function OnboardingFlow() {
             )}
             <button
               onClick={isLast ? finish : next}
-              disabled={finishing}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60"
+              disabled={finishing || (step === 1 && !nameValid)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
               {finishing && <Loader2 className="size-4 animate-spin" />}
               {step === 0
@@ -265,15 +278,6 @@ export function OnboardingFlow() {
               {!isLast && <ChevronRight className="size-4" />}
             </button>
           </div>
-          {!isLast && (
-            <button
-              onClick={finish}
-              disabled={finishing}
-              className="mt-3 w-full text-center text-sm font-medium text-foreground/45 transition-colors hover:text-foreground/70 disabled:opacity-60"
-            >
-              Skip for now
-            </button>
-          )}
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 // and fill in the contact email below.
 
 const EFFECTIVE_DATE = 'June 14, 2026'
-const CONTACT_EMAIL = '[your contact email]'
+const CONTACT_EMAIL = 'eesam1998@gmail.com'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
