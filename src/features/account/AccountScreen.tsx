@@ -47,6 +47,26 @@ export function AccountScreen() {
         {canChangePassword && <ChangePassword />}
         <ExportData />
         <DangerZone />
+
+        <p className="pt-1 text-center text-xs text-foreground/45">
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-foreground/70"
+          >
+            Privacy Policy
+          </a>
+          <span className="mx-2">·</span>
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-foreground/70"
+          >
+            Terms of Service
+          </a>
+        </p>
       </div>
     </>
   )

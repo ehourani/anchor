@@ -38,6 +38,9 @@ export default defineConfig({
         // data stays network-only (offline data sync is a deliberate deferral).
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
+        // The standalone legal pages are real, public, non-SPA routes — don't let
+        // the SPA navigation fallback (index.html) shadow them.
+        navigateFallbackDenylist: [/^\/privacy/, /^\/terms/],
       },
     }),
   ],
