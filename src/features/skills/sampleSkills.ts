@@ -45,7 +45,7 @@ export const sampleSkills: Skill[] = [
     id: 'cold-water',
     title: 'Cold water reset',
     description:
-      'Splash cold water on your face, hold an ice cube, or press something cold to your wrists or the back of your neck for about 30 seconds. The cold gently shifts your body out of a spike of distress and back toward calm.',
+      'Splash cold water on your face, hold an ice cube, or press something cold to your wrists or the back of your neck for about 30 seconds. The cold shifts your body out of a spike of distress and back toward calm.',
     crisisPriority: 2,
     isFavorite: false,
     tags: [
@@ -76,7 +76,7 @@ export const sampleSkills: Skill[] = [
     id: 'breathing',
     title: 'Slow paced breathing',
     description:
-      'Breathe in gently for a count of four, then out for a count of six. Let the out-breath be longer and softer than the in-breath, and repeat for a minute or two. The longer exhale is what settles your nervous system.',
+      'Breathe in for a count of four, then out for a count of six. Let the out-breath be longer and softer than the in-breath, and repeat for a minute or two. The longer exhale is what settles your nervous system.',
     crisisPriority: 4,
     isFavorite: false,
     tags: [

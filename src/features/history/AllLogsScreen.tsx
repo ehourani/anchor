@@ -11,7 +11,7 @@ export function AllLogsScreen() {
           Skill reflections
         </h1>
         <p className="mt-1 text-sm text-foreground/50">
-          A gentle record of when you've reached for a skill.
+          A record of when you've reached for a skill.
         </p>
       </div>
       <div className="mt-4">

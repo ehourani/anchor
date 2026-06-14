@@ -240,8 +240,7 @@ export function OnboardingFlow() {
                 You're all set{first ? `, ${first}` : ''}.
               </h1>
               <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
-                Your toolkit is ready. It's here whenever you need it — gently, at
-                your own pace.
+                Your toolkit is ready. It's here whenever you need it.
               </p>
               {error && (
                 <p className="mt-3 text-sm text-destructive">

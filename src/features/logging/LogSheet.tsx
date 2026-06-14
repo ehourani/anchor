@@ -105,7 +105,7 @@ export function LogSheet({
             <div className="space-y-4">
               <div className="flex items-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
                 <Check className="size-5" />
-                <span className="font-semibold">Logged — gently done.</span>
+                <span className="font-semibold">Logged ✔️</span>
               </div>
               <LogReflection
                 helpfulness={helpfulness}

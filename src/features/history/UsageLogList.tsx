@@ -116,7 +116,7 @@ export function UsageLogList({
   if (logs.length === 0) {
     return (
       <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
-        No entries yet. Each time you use a skill, it'll gently show up here.
+        No entries yet. Each time you use a skill, it'll show up here.
       </div>
     )
   }
