@@ -2,11 +2,13 @@ import { Anchor } from 'lucide-react'
 
 import { OceanBackdrop } from '@/components/OceanBackdrop'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { isOnboarded } from '@/features/auth/auth'
 import { AuthScreen } from '@/features/auth/AuthScreen'
+import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow'
 import { HomeScreen } from '@/features/skills/HomeScreen'
 
 export default function App() {
-  const { session, loading } = useAuth()
+  const { session, user, loading } = useAuth()
 
   // Hold on a calm splash while we restore any existing session, so we never
   // flash the auth screen at someone who's already signed in.
@@ -21,5 +23,8 @@ export default function App() {
     )
   }
 
-  return session ? <HomeScreen /> : <AuthScreen />
+  if (!session) return <AuthScreen />
+  // New accounts go through first-run onboarding once (flag in user_metadata).
+  if (!isOnboarded(user)) return <OnboardingFlow />
+  return <HomeScreen />
 }

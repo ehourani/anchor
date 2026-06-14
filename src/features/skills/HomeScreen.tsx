@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleUser,
+  Lock,
   LogOut,
   Menu,
   NotebookPen,
@@ -24,6 +25,7 @@ import { signOut } from '@/features/auth/auth'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
 import { AccountScreen } from '@/features/account/AccountScreen'
+import { PrivacyPolicy } from '@/features/legal/PrivacyPolicy'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
@@ -91,6 +93,7 @@ type Screen =
   | { k: 'skill-logs'; id: string }
   | { k: 'crisis' }
   | { k: 'account' }
+  | { k: 'privacy' }
 
 function screenKey(s: Screen): string {
   if (s.k === 'situation') return `situation:${s.key}`
@@ -284,6 +287,16 @@ export function HomeScreen() {
                   <button
                     onClick={() => {
                       setProfileOpen(false)
+                      navTop({ k: 'privacy' })
+                    }}
+                    className="mt-2 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
+                  >
+                    <Lock className="size-4" />
+                    Privacy policy
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false)
                       void signOut()
                     }}
                     className="mt-2 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
@@ -334,6 +347,8 @@ export function HomeScreen() {
             <AllLogsScreen />
           ) : screen.k === 'account' ? (
             <AccountScreen />
+          ) : screen.k === 'privacy' ? (
+            <PrivacyPolicy />
           ) : screen.k === 'all-skills' ? (
             /* All skills — the full toolkit, alphabetical */
             <>

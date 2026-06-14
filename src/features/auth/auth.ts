@@ -55,6 +55,25 @@ export async function updatePassword(newPassword: string) {
   if (error) throw error
 }
 
+// Whether this user has been through first-run onboarding. Stored as a flag in
+// auth user_metadata — it's a UI gate (not authorization), it rides along on the
+// session so the app can decide without an extra query, and it needs no schema.
+export function isOnboarded(user: User | null): boolean {
+  return user?.user_metadata?.onboarded === true
+}
+
+// Mark onboarding complete, saving the chosen name alongside the flag. updateUser
+// merges into user_metadata, so any existing fields (e.g. a Google profile name)
+// are preserved. Firing this updates the session, which flips the app from the
+// onboarding flow to the home screen.
+export async function completeOnboarding(fullName: string) {
+  const data: Record<string, unknown> = { onboarded: true }
+  const name = fullName.trim()
+  if (name) data.full_name = name
+  const { error } = await supabase.auth.updateUser({ data })
+  if (error) throw error
+}
+
 // Permanently delete the signed-in user's account and all their data. The
 // security-definer delete_own_account() RPC removes the auth.users row, which
 // cascade-deletes their skills and reflections (see the migration). We then
