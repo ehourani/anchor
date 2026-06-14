@@ -12,7 +12,7 @@ export default function App() {
   // flash the auth screen at someone who's already signed in.
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center">
+      <div className="relative flex min-h-[100dvh] items-center justify-center">
         <OceanBackdrop />
         <span className="animate-breathe flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
           <Anchor className="size-8" />

@@ -203,10 +203,10 @@ export function HomeScreen() {
   const visibleAll = allSorted.filter((s) => matchesFilters(s, filters))
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-[100dvh]">
       <OceanBackdrop />
 
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-28 pt-6">
+      <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]">
         {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
         <header className="relative flex h-9 items-center justify-between">
           {stack.length > 1 ? (
@@ -517,7 +517,7 @@ export function HomeScreen() {
           scrolling lists. The crisis button is larger and red so it reads as the
           one-tap panic target. The wrapper ignores pointer events so the gaps
           stay click-through; each button re-enables them. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 mx-auto h-14 w-full max-w-md px-5">
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 mx-auto h-14 w-full max-w-md px-5">
         <div className="relative h-full w-full">
           <button
             onClick={() => setAddOpen(true)}

@@ -241,7 +241,7 @@ function DangerZone() {
               role="dialog"
               aria-modal="true"
               aria-label="Delete your account"
-              className="animate-fade-rise fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] p-6 shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)]"
+              className="animate-fade-rise fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)]"
             >
               <h2 className="font-display text-lg font-semibold text-foreground">
                 Delete your account?

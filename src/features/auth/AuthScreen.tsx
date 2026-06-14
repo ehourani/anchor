@@ -88,7 +88,7 @@ export function AuthScreen() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-5 py-10">
+    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 py-10">
       <OceanBackdrop />
 
       <div className="animate-fade-rise w-full max-w-sm">
