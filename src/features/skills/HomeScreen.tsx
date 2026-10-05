@@ -203,7 +203,7 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div
-        className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] ${
+        className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1rem+env(safe-area-inset-top))] ${
           // Home stops right at the nav's top edge (its footprint: 1rem
           // offset + the ~4.9rem bar), so the hint below the buoy centers between
           // the two; other screens keep extra room to scroll clear of it.
@@ -214,11 +214,11 @@ export function HomeScreen() {
       >
         {/* Navbar — Back (below home) · brand. Everything else lives in the
             bottom nav. */}
-        <header className="relative flex h-9 shrink-0 items-center justify-between">
+        <header className="relative flex shrink-0 justify-center">
           {stack.length > 1 && (
             <button
               onClick={back}
-              className="flex items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
+              className="absolute left-0 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
             >
               <ChevronLeft className="size-4" />
               Back
@@ -228,12 +228,12 @@ export function HomeScreen() {
           <button
             onClick={goHome}
             aria-label="Anchor — go home"
-            className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
+            className="flex items-center gap-2.5 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
           >
-            <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-primary">
-              <Anchor className="size-4" />
+            <span className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Anchor className="size-[1.4rem]" />
             </span>
-            <span className="font-display text-xl font-bold tracking-tight text-foreground">
+            <span className="font-display text-[1.75rem] font-bold leading-none tracking-tight text-foreground">
               Anchor
             </span>
           </button>
@@ -388,16 +388,16 @@ export function HomeScreen() {
             /* Home — greeting section, then the anchor section */
             <>
               {/* Section 1 — greeting, gentle reminder, Today's Skill */}
-              <section className="mt-5 shrink-0">
+              <section className="mt-3 shrink-0">
                 <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
                   {timeGreeting(new Date())}, {greetingName(user)}
                 </h1>
-                <p className="mt-1.5 text-[0.95rem] text-foreground/60">
+                <p className="mt-1 text-[0.95rem] text-foreground/60">
                   Your toolkit is here whenever you need it.
                 </p>
 
                 {todaysSkill && (
-                  <div className="mt-4 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
+                  <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md">
                     <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
                       Today's Skill to practice
                     </p>
@@ -409,7 +409,7 @@ export function HomeScreen() {
                     </p>
                     <button
                       onClick={() => push({ k: 'skill', id: todaysSkill.id })}
-                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                      className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                     >
                       Try this
                       <ChevronRight className="size-4" />
@@ -419,15 +419,15 @@ export function HomeScreen() {
               </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
-              {/* A size container: the buoy is a square sized to fit
-                  (at most 18.5rem, and never taller than the space minus the
-                  hint's minimum), so on short screens it shrinks instead of
-                  colliding with the nav. Leftover space splits 1:2 above and
-                  below the buoy (so it sits a little high), and the hint is
-                  centered in the space below, midway between buoy and nav. */}
-              <section className="mt-4 flex min-h-0 flex-1 flex-col items-center [container-type:size]">
+              {/* A size container: the buoy is a square sized to fit (at
+                  most 17rem, and never taller than the space minus its hint),
+                  so on short screens it shrinks instead of colliding with the
+                  nav. The hint sits in a fixed slot just under the buoy, and
+                  leftover space goes mostly below (1:3), so buoy and hint ride
+                  high with the sand showing beneath them. */}
+              <section className="mt-2 flex min-h-0 flex-1 flex-col items-center [container-type:size]">
                 <div className="min-h-0 flex-[1]" />
-                <div className="relative aspect-square w-[min(18.5rem,100cqw,calc(100cqh-4rem))] shrink-0">
+                <div className="relative aspect-square w-[min(17rem,100cqw,calc(100cqh-3.5rem))] shrink-0">
                   <SituationWheel
                     expanded={expanded}
                     onToggle={() => setExpanded((e) => !e)}
@@ -444,7 +444,7 @@ export function HomeScreen() {
                 </div>
                 {/* A gentle hint at rest, cross-fading to the question once the
                     wheel opens — same quiet style for both. */}
-                <div className="relative min-h-16 w-full flex-[2]">
+                <div className="relative h-14 w-full shrink-0">
                   {[
                     { text: "Tap the anchor when you're ready", shown: !expanded },
                     { text: 'What do you need right now?', shown: expanded },
@@ -460,6 +460,7 @@ export function HomeScreen() {
                     </p>
                   ))}
                 </div>
+                <div className="min-h-0 flex-[3]" />
               </section>
             </>
           )}
