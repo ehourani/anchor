@@ -485,11 +485,11 @@ export function HomeScreen() {
               {/* A size container: the buoy is a square sized to fit
                   (at most 18.5rem, and never taller than the space minus the
                   hint's minimum), so on short screens it shrinks instead of
-                  colliding with the nav. Leftover space splits evenly above
-                  and below the buoy; the hint sits centered in the space
-                  below, i.e. midway between the buoy and the nav. */}
+                  colliding with the nav. Leftover space splits 1:2 above and
+                  below the buoy (so it sits a little high), and the hint is
+                  centered in the space below, midway between buoy and nav. */}
               <section className="mt-4 flex min-h-0 flex-1 flex-col items-center [container-type:size]">
-                <div className="min-h-0 flex-1" />
+                <div className="min-h-0 flex-[1]" />
                 <div className="relative aspect-square w-[min(18.5rem,100cqw,calc(100cqh-4rem))] shrink-0">
                   <SituationWheel
                     expanded={expanded}
@@ -507,7 +507,7 @@ export function HomeScreen() {
                 </div>
                 {/* A gentle hint at rest, cross-fading to the question once the
                     wheel opens — same quiet style for both. */}
-                <div className="relative min-h-16 w-full flex-1">
+                <div className="relative min-h-16 w-full flex-[2]">
                   {[
                     { text: "Tap the anchor when you're ready", shown: !expanded },
                     { text: 'What do you need right now?', shown: expanded },

@@ -60,7 +60,7 @@ async function goToStarters(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Last name'), 'Rivera')
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   // The greeting moves on by itself after a moment.
-  await screen.findByRole('heading', { name: 'Anchors are your coping skills' }, { timeout: 3000 })
+  await screen.findByRole('heading', { name: 'Anchors are your coping skills' }, { timeout: 4000 })
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   await user.click(screen.getByRole('button', { name: 'Continue' }))
 }
@@ -93,11 +93,12 @@ describe('OnboardingFlow', () => {
 
     // A brief "Nice to meet you", then on to the explainer by itself.
     expect(screen.getByText('Nice to meet you, Sam.')).toBeInTheDocument()
+    expect(screen.getByText("Let's get you set up with Anchor.")).toBeInTheDocument()
     expect(
       await screen.findByRole(
         'heading',
         { name: 'Anchors are your coping skills' },
-        { timeout: 3000 },
+        { timeout: 4000 },
       ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Continue' }))
@@ -108,7 +109,7 @@ describe('OnboardingFlow', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(
-      screen.getByRole('heading', { name: "We'll start you off with a few anchors" }),
+      screen.getByRole('heading', { name: 'Your starting anchors' }),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 

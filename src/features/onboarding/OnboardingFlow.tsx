@@ -49,12 +49,10 @@ function Reveal({ order, children }: { order: number; children: ReactNode }) {
   )
 }
 
-// Large, centered brand mark for the welcome, name, and explainer steps. The
-// marks carry a thin border in their icon color so the soft fills don't
-// float loosely against the water.
+// Large, centered brand mark for the welcome, name, and explainer steps.
 function AnchorLogo() {
   return (
-    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl border-[1.5px] border-primary bg-primary/15 text-primary">
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-primary/15 text-primary">
       <Anchor className="size-12" strokeWidth={1.75} />
     </span>
   )
@@ -63,7 +61,7 @@ function AnchorLogo() {
 // The coral life buoy used for distress everywhere else (wheel, nav, menu).
 function DistressLogo() {
   return (
-    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl border-[1.5px] border-[hsl(8,58%,52%)] bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
       <LifeBuoy className="size-12" strokeWidth={1.75} />
     </span>
   )
@@ -73,10 +71,10 @@ function DistressLogo() {
 function StepMark({ distress = false }: { distress?: boolean }) {
   return (
     <span
-      className={`flex size-14 shrink-0 items-center justify-center rounded-2xl border-[1.5px] ${
+      className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${
         distress
-          ? 'border-[hsl(8,58%,52%)] bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]'
-          : 'border-primary bg-primary/15 text-primary'
+          ? 'bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]'
+          : 'bg-primary/15 text-primary'
       }`}
     >
       {distress ? (
@@ -158,7 +156,7 @@ export function OnboardingFlow() {
     const timer = setTimeout(() => {
       setGreeting(false)
       setStep(2)
-    }, 1800)
+    }, 2800)
     return () => clearTimeout(timer)
   }, [greeting])
 
@@ -199,7 +197,7 @@ export function OnboardingFlow() {
     'w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col px-7 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
+    <div className="relative flex min-h-[100dvh] flex-col px-9 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
       <OceanBackdrop />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -231,9 +229,18 @@ export function OnboardingFlow() {
           className="animate-fade-rise flex min-h-0 flex-1 flex-col justify-center py-8"
         >
           {greeting && (
-            <p className="px-2 text-center font-display text-3xl font-semibold leading-tight text-foreground">
-              Nice to meet you, {first.trim()}.
-            </p>
+            <div className="px-2 text-center">
+              <Reveal order={0}>
+                <p className="font-display text-3xl font-semibold leading-tight text-foreground">
+                  Nice to meet you, {first.trim()}.
+                </p>
+              </Reveal>
+              <Reveal order={1}>
+                <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
+                  Let's get you set up with Anchor.
+                </p>
+              </Reveal>
+            </div>
           )}
 
           {!greeting && step === 0 && (
@@ -319,7 +326,7 @@ export function OnboardingFlow() {
             <div className="flex min-h-0 flex-1 flex-col">
               <StepMark />
               <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
-                We'll start you off with a few anchors
+                Your starting anchors
               </h1>
               <p className="mt-2 shrink-0 text-sm text-foreground/60">
                 You can always change these later.

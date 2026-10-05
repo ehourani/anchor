@@ -203,8 +203,8 @@ describe('My Anchors', () => {
     const quick = screen
       .getAllByRole('button', { pressed: false })
       .map((b) => b.textContent)
-      .filter((t) => ['Low Effort', 'Slow the spiral', 'Touch', 'DBT'].includes(t ?? ''))
-    expect(quick.slice(0, 4)).toEqual(['Low Effort', 'Slow the spiral', 'Touch', 'DBT'])
+      .filter((t) => ['Low Effort', 'Slow the spiral', 'Calm down', 'DBT'].includes(t ?? ''))
+    expect(quick.slice(0, 4)).toEqual(['Low Effort', 'Slow the spiral', 'Calm down', 'DBT'])
   })
 
   it('marks distress-set anchors with a buoy, and only those', async () => {
@@ -218,6 +218,11 @@ describe('My Anchors', () => {
     expect(marked.sort()).toEqual(['Cold water', 'Grounding 5-4-3-2-1'])
     // It's a marker, not a toggle.
     expect(screen.queryByRole('button', { name: /distress set/ })).not.toBeInTheDocument()
+
+    // Marked cards skip the redundant Distress tag; it stays on the detail view.
+    const coldWaterCard = screen.getByRole('heading', { level: 3, name: 'Cold water' }).closest('[class*="cursor-pointer"]') as HTMLElement
+    expect(within(coldWaterCard).queryByText('Distress')).not.toBeInTheDocument()
+    expect(within(coldWaterCard).getAllByText('Low Effort').length).toBeGreaterThan(0)
   })
 
   it('has no favorites anywhere', async () => {

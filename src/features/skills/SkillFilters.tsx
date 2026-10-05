@@ -18,7 +18,7 @@ import {
 const QUICK: { category: TagCategory; slug: string }[] = [
   { category: 'effort', slug: 'low' },
   { category: 'situation', slug: 'distraction' },
-  { category: 'senses', slug: 'touch' },
+  { category: 'situation', slug: 'emotion-regulation' },
   { category: 'modality', slug: 'dbt' },
 ]
 

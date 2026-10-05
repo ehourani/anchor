@@ -111,6 +111,15 @@ export function SkillCard({
   onOpen?: () => void
 }) {
   const inCrisisSet = skill.crisisPriority !== null
+  // The buoy already says "distress", so drop the redundant Distress tag on
+  // cards that show it (the detail view still lists every tag).
+  const cardTags = useMemo(
+    () =>
+      inCrisisSet
+        ? skill.tags.filter((t) => !(t.category === 'situation' && t.label === 'crisis'))
+        : skill.tags,
+    [skill.tags, inCrisisSet],
+  )
 
   return (
     <Card
@@ -138,7 +147,7 @@ export function SkillCard({
             {skill.description}
           </p>
           <div className="pt-0.5">
-            <TagLine tags={skill.tags} />
+            <TagLine tags={cardTags} />
           </div>
         </div>
         <ChevronRight className="size-5 shrink-0 text-muted-foreground/50" />
