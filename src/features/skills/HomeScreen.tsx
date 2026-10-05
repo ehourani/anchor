@@ -226,7 +226,11 @@ export function HomeScreen() {
           // offset + ~5rem bar), so the hint below the buoy centers between
           // the two; other screens keep extra room to scroll clear of it.
           isHome
-            ? 'h-[100dvh] overflow-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]'
+            ? `h-[100dvh] overflow-hidden ${
+                fiveItemNav
+                  ? 'pb-[calc(4.6rem+env(safe-area-inset-bottom))]'
+                  : 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+              }`
             : 'min-h-[100dvh] pb-[calc(7rem+env(safe-area-inset-bottom))]'
         }`}
       >
@@ -545,10 +549,19 @@ export function HomeScreen() {
           lists. Distress is set apart by its coral icon + label only. */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5"
+        className={
+          fiveItemNav
+            ? // Full-width bar, flush with the bottom and side edges.
+              'fixed inset-x-0 bottom-0 z-30 border-t border-white/70 bg-white/80 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_hsl(200_50%_40%_/_0.25)] backdrop-blur-md'
+            : 'fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5'
+        }
       >
         <div
-          className={`grid ${fiveItemNav ? 'grid-cols-5 gap-0.5' : 'grid-cols-3 gap-1'} rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`}
+          className={
+            fiveItemNav
+              ? 'mx-auto grid w-full max-w-md grid-cols-5 gap-0.5 px-2 py-1'
+              : 'grid grid-cols-3 gap-1 rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md'
+          }
         >
           {fiveItemNav && (
             <NavItem
