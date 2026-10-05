@@ -76,6 +76,7 @@ export function SituationWheel({
               d={sectorPath(s.angle)}
               fill={fill}
               stroke="none"
+              aria-label={expanded ? s.label : undefined}
               className="cursor-pointer transition-[fill] duration-300"
               onMouseEnter={expanded ? () => setHovered(s.key) : undefined}
               onMouseLeave={
@@ -111,6 +112,7 @@ export function SituationWheel({
           cy={0}
           r={r - 2}
           fill="transparent"
+          aria-label={expanded ? 'Close the options' : 'Find an anchor'}
           className="cursor-pointer"
           onClick={onToggle}
         />

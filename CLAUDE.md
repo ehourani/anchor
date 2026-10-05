@@ -18,6 +18,8 @@ A personal coping-skills toolkit that helps someone in eating disorder recovery 
 ```bash
 npm run dev                                        # dev server
 npm run build                                      # production build
+npm test                                           # Vitest suite (never hits Supabase)
+npm run typecheck                                  # tsc -b
 supabase migration new <name>                      # create a migration
 supabase db push                                   # apply migrations to the linked project
 supabase db reset                                  # local: rerun all migrations + seed.sql

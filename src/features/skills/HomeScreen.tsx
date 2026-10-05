@@ -32,6 +32,8 @@ import { SkillFilters } from './SkillFilters'
 import type { Skill } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
 import { emptyFilters, matchesFilters, type Filters } from './filters'
+import { pickInvitation } from './invitation'
+import { compareSituationMatches, compareToolkit } from './sorting'
 import { useSkills } from './useSkills'
 import { useCreateSkill } from './useCreateSkill'
 import { useUpdateSkill } from './useUpdateSkill'
@@ -54,30 +56,6 @@ function timeGreeting(date: Date): string {
   if (h >= 12 && h < 17) return 'Good afternoon'
   if (h >= 17 && h < 22) return 'Good evening'
   return 'Hello'
-}
-
-// A small, stable string hash (FNV-1a) — turns a seed into a number we can use
-// to pick a skill deterministically.
-function hashSeed(seed: string): number {
-  let h = 0x811c9dc5
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
-  }
-  return h >>> 0
-}
-
-// A softly-suggested skill to try today. Rotates gently: one pick per day, tied
-// to the user (the same person sees the same invitation all day, a different one
-// tomorrow). Prefers low-effort skills so the suggestion always feels doable,
-// and falls back to the whole toolkit if none are tagged low.
-function pickInvitation(skills: Skill[], seed: string): Skill | null {
-  if (skills.length === 0) return null
-  const lowEffort = skills.filter((s) =>
-    s.tags.some((t) => t.category === 'effort' && t.label === 'low'),
-  )
-  const pool = lowEffort.length > 0 ? lowEffort : skills
-  return pool[hashSeed(seed) % pool.length]
 }
 
 // The app's screens. The wheel flow (home → situation → skill) and the history
@@ -182,27 +160,11 @@ export function HomeScreen() {
             (t) => t.category === 'situation' && t.label === activeSituation.key,
           ),
         )
-        // Starred first; in crisis the curated priority order leads; then what's
-        // worked best (by your reflections); then alphabetical.
-        .sort(
-          (a, b) =>
-            Number(b.isFavorite) - Number(a.isFavorite) ||
-            (activeSituation.key === 'crisis'
-              ? (a.crisisPriority ?? 99) - (b.crisisPriority ?? 99)
-              : 0) ||
-            helpScore(b.id) - helpScore(a.id) ||
-            a.title.localeCompare(b.title),
-        )
+        .sort(compareSituationMatches(activeSituation.key, helpScore))
     : []
   const visibleMatches = matches.filter((s) => matchesFilters(s, filters))
 
-  // The full toolkit: starred first, then most-helpful, then alphabetical.
-  const allSorted = [...skills].sort(
-    (a, b) =>
-      Number(b.isFavorite) - Number(a.isFavorite) ||
-      helpScore(b.id) - helpScore(a.id) ||
-      a.title.localeCompare(b.title),
-  )
+  const allSorted = [...skills].sort(compareToolkit(helpScore))
   const visibleAll = allSorted.filter((s) => matchesFilters(s, filters))
 
   return (

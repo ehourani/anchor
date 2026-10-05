@@ -57,6 +57,20 @@ export async function insertSkill(
   return inserted.id
 }
 
+// The tag links to add and remove to turn a skill's stored tags into the
+// desired set. Duplicates in either list are ignored.
+export function diffTagIds(
+  existingIds: string[],
+  nextIds: string[],
+): { toAdd: string[]; toRemove: string[] } {
+  const existing = new Set(existingIds)
+  const next = new Set(nextIds)
+  return {
+    toAdd: [...next].filter((id) => !existing.has(id)),
+    toRemove: [...existing].filter((id) => !next.has(id)),
+  }
+}
+
 // Edit an existing skill: update its fields, then reconcile its tag links by
 // diffing the desired set against what's stored (insertSkill only ever adds, so
 // edits need the delete side too). Like insertSkill, this is several non-
@@ -89,10 +103,10 @@ export async function updateSkill(
     .eq('skill_id', skillId)
   if (readError) throw readError
 
-  const existingIds = new Set((existing ?? []).map((r) => r.tag_id))
-  const nextIds = new Set(nextTagIds)
-  const toAdd = nextTagIds.filter((id) => !existingIds.has(id))
-  const toRemove = [...existingIds].filter((id) => !nextIds.has(id))
+  const { toAdd, toRemove } = diffTagIds(
+    (existing ?? []).map((r) => r.tag_id),
+    nextTagIds,
+  )
 
   if (toRemove.length > 0) {
     const { error } = await supabase

@@ -12,7 +12,7 @@ export type SkillUsageStat = {
   count: number
 }
 
-function buildStats(logs: UsageLog[]): Map<string, SkillUsageStat> {
+export function buildStats(logs: UsageLog[]): Map<string, SkillUsageStat> {
   // Accumulate sums first, then finalize to an average.
   const acc = new Map<
     string,

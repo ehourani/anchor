@@ -97,6 +97,8 @@ vercel.json           # clean URLs (so /privacy and /terms resolve)
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
 | `npm run preview` | Preview the production build |
+| `npm test` | Run the test suite once (Vitest; `npm run test:watch` to watch) |
+| `npm run typecheck` | Typecheck the app, tests, and configs |
 | `npm run gen:icons` | Regenerate the PWA icon set from the anchor mark |
 | `supabase gen types typescript --linked` | Regenerate DB types after a schema change |
 
