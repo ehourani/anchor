@@ -16,7 +16,6 @@ import {
   Lightbulb,
   Mountain,
   PersonStanding,
-  Sparkles,
   Sprout,
   Trees,
   Unlock,
@@ -24,6 +23,8 @@ import {
   Wind,
   type LucideIcon,
 } from 'lucide-react'
+
+import { Spiral } from '@/components/icons'
 
 import type { TagCategory } from './sampleSkills'
 
@@ -54,7 +55,7 @@ export const tagVocabulary: CategoryMeta[] = [
     options: [
       { slug: 'crisis', label: 'Distress', Icon: LifeBuoy },
       { slug: 'emotion-regulation', label: 'Calm down', Icon: Wind },
-      { slug: 'distraction', label: 'Slow the spiral', Icon: Sparkles },
+      { slug: 'distraction', label: 'Slow the spiral', Icon: Spiral },
       { slug: 'life-building', label: 'Build balance', Icon: Sprout },
     ],
   },

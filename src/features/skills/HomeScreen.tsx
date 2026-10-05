@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import {
   Anchor,
-  Brain,
   ChevronLeft,
   ChevronRight,
   CircleUser,
   LifeBuoy,
   LogOut,
   Menu,
+  NotebookPen,
   Plus,
   Settings,
 } from 'lucide-react'
@@ -81,11 +81,43 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
-// Shared style for the round bottom buttons: icon over a short label, sized
-// to hold both. The distress button in the middle is larger and coral.
-const roundButton =
-  'pointer-events-auto absolute flex -translate-x-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-white/60 text-center text-[0.68rem] font-semibold leading-tight backdrop-blur-md transition-colors'
-const sideButton = `${roundButton} top-2 size-[4.75rem] bg-white/70 px-2 text-foreground/70 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] hover:bg-white hover:text-foreground`
+// One item in the bottom nav: icon over a label, ≥44px tall. No filled
+// backgrounds, so nothing reads as "selected" except the screen you're on,
+// which gets a small dot under its label.
+function NavItem({
+  icon: Icon,
+  label,
+  current,
+  tone = 'neutral',
+  onClick,
+}: {
+  icon: typeof Anchor
+  label: string
+  current: boolean
+  tone?: 'neutral' | 'distress'
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-current={current ? 'page' : undefined}
+      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 pb-1.5 pt-2 text-xs font-semibold leading-tight transition-colors hover:bg-white/60 ${
+        tone === 'distress'
+          ? 'text-[hsl(8,52%,46%)] hover:text-[hsl(8,58%,38%)]'
+          : current
+            ? 'text-primary'
+            : 'text-foreground/60 hover:text-foreground'
+      }`}
+    >
+      <Icon className="size-6 shrink-0" strokeWidth={tone === 'distress' ? 1.9 : 1.75} />
+      {label}
+      <span
+        aria-hidden="true"
+        className={`size-1 rounded-full ${current ? 'bg-current' : 'bg-transparent'}`}
+      />
+    </button>
+  )
+}
 
 // Shared style for the "Add an Anchor" call to action on list screens.
 const addAnchorButton =
@@ -179,7 +211,7 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div
-        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(8rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
+        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
           isHome ? 'h-[100dvh] overflow-hidden' : 'min-h-[100dvh]'
         }`}
       >
@@ -446,18 +478,6 @@ export function HomeScreen() {
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
               <section className="mt-4 flex min-h-0 flex-1 flex-col">
-                {/* The prompt fades in once the wheel opens; at rest the buoy
-                    speaks for itself. The slot keeps its height either way. */}
-                <div className="relative h-9 shrink-0">
-                  <h2
-                    className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
-                      expanded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    What do you need right now?
-                  </h2>
-                </div>
-
                 {/* The buoy fills the leftover space as a centered square, so on
                     short screens it shrinks to fit instead of overflowing at a
                     fixed size and colliding with the bottom bar. */}
@@ -478,7 +498,8 @@ export function HomeScreen() {
                     />
                   </div>
                 </div>
-                {/* Fixed-height slot below the buoy; the two messages cross-fade. */}
+                {/* Fixed-height slot below the buoy: a gentle hint at rest,
+                    cross-fading to the question once the wheel opens. */}
                 <div className="relative mt-2 h-12 w-full shrink-0">
                   <p
                     className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
@@ -488,11 +509,11 @@ export function HomeScreen() {
                     Tap the anchor when you're ready
                   </p>
                   <p
-                    className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
+                    className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
                       expanded ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    Pick one that would help, or tap the anchor again to go back
+                    What do you need right now?
                   </p>
                 </div>
               </section>
@@ -502,40 +523,36 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom actions — My Anchors · I'm in distress · Reflect. Round,
-          labeled buttons, always reachable and floating over the content so
-          they stay in reach on long lists. Distress is larger and coral so it
-          reads as the one-tap target for a hard moment. The wrapper ignores
-          pointer events so the gaps stay click-through. */}
+      {/* Bottom nav — My Anchors · I'm in distress · Reflect. Always
+          reachable, floating over the content so it stays in reach on long
+          lists. Distress is set apart by its coral icon + label only. */}
       <nav
         aria-label="Main"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-30 mx-auto h-[5.75rem] w-full max-w-md px-5"
+        className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5"
       >
-        <div className="relative h-full w-full">
-          <button
+        <div className="grid grid-cols-3 gap-1 rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
+          <NavItem
+            icon={Anchor}
+            label="My Anchors"
+            current={screen.k === 'all-skills'}
             onClick={() => {
               setFilters(emptyFilters())
               navTop({ k: 'all-skills' })
             }}
-            className={`${sideButton} left-[18%]`}
-          >
-            <Anchor className="size-6 shrink-0" strokeWidth={1.75} />
-            My Anchors
-          </button>
-          <button
+          />
+          <NavItem
+            icon={LifeBuoy}
+            label="I'm in distress"
+            tone="distress"
+            current={screen.k === 'crisis'}
             onClick={() => navTop({ k: 'crisis' })}
-            className={`${roundButton} bottom-0 left-1/2 size-[5.75rem] bg-[hsl(8,76%,90%)]/75 px-2.5 text-[hsl(8,52%,42%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] hover:bg-[hsl(8,76%,88%)]/90 hover:text-[hsl(8,58%,36%)]`}
-          >
-            <LifeBuoy className="size-7 shrink-0" strokeWidth={1.9} />
-            I'm in distress
-          </button>
-          <button
+          />
+          <NavItem
+            icon={NotebookPen}
+            label="Reflect"
+            current={false}
             onClick={() => setLogOpen(true)}
-            className={`${sideButton} left-[82%]`}
-          >
-            <Brain className="size-6 shrink-0" strokeWidth={1.75} />
-            Reflect
-          </button>
+          />
         </div>
       </nav>
 

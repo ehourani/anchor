@@ -1,4 +1,6 @@
-import { LifeBuoy, Sparkles, Sprout, Wind, type LucideIcon } from 'lucide-react'
+import { LifeBuoy, Sprout, Wind, type LucideIcon } from 'lucide-react'
+
+import { Spiral } from '@/components/icons'
 
 // The four `situation` tags (migration 0003) become the four wheel segments.
 // Each carries its on-wheel label, a gentle heading for the filtered view,
@@ -8,6 +10,9 @@ export type SituationMeta = {
   key: string
   /** short label shown on the wheel */
   label: string
+  /** the label as broken onto lines on the wheel, so it stays inside its
+   *  quadrant (the side quadrants are narrow) */
+  wheelLines: string[]
   /** gentle title shown on the filtered screen */
   heading: string
   Icon: LucideIcon
@@ -22,6 +27,7 @@ export const situations: SituationMeta[] = [
   {
     key: 'crisis',
     label: 'In distress',
+    wheelLines: ['In distress'],
     heading: "Let's just get steady",
     Icon: LifeBuoy,
     angle: -90,
@@ -32,6 +38,7 @@ export const situations: SituationMeta[] = [
   {
     key: 'emotion-regulation',
     label: 'Calm down',
+    wheelLines: ['Calm', 'down'],
     heading: "Let's soften what you're feeling",
     Icon: Wind,
     angle: 0,
@@ -42,8 +49,9 @@ export const situations: SituationMeta[] = [
   {
     key: 'distraction',
     label: 'Slow the spiral',
+    wheelLines: ['Slow the', 'spiral'],
     heading: "Let's shift your focus for a bit",
-    Icon: Sparkles,
+    Icon: Spiral,
     angle: 90,
     fill: 'hsl(212, 64%, 89%)',
     hover: 'hsl(212, 62%, 83%)',
@@ -52,6 +60,7 @@ export const situations: SituationMeta[] = [
   {
     key: 'life-building',
     label: 'Build balance',
+    wheelLines: ['Build', 'balance'],
     heading: 'Small things that build you up',
     Icon: Sprout,
     angle: 180,

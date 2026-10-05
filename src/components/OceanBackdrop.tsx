@@ -13,20 +13,33 @@ const bubbles = [
 ]
 
 // Specks in the sand: a fixed scatter (seeded, so it never shifts between
-// renders) of small, soft dots. x is a % of the width; y is px from the top of
-// a 56px band at the very bottom, which always sits inside the seabed mound.
+// renders) of small, soft dots across the whole seabed, up to its curved top
+// edge. The seabed path's x control points are evenly spaced, so its top at a
+// horizontal fraction t is just the bezier's y(t); the seabed box is 224px tall
+// for a 160-unit viewBox (×1.4).
+const SEABED_PX = 224
+function seabedTopPx(t: number): number {
+  const u = 1 - t
+  const y = 104 * u ** 3 + 3 * 72 * t * u ** 2 + 3 * 72 * t ** 2 * u + 96 * t ** 3
+  return y * (SEABED_PX / 160)
+}
+
 const specks = (() => {
   let seed = 7
   const rand = () => {
     seed = (seed * 16807) % 2147483647
     return seed / 2147483647
   }
-  return Array.from({ length: 34 }, () => ({
-    x: `${(rand() * 100).toFixed(1)}%`,
-    y: 6 + rand() * 46,
-    r: 0.8 + rand() * 1.2,
-    dark: rand() > 0.35,
-  }))
+  return Array.from({ length: 60 }, () => {
+    const t = rand()
+    const top = seabedTopPx(t) + 5 // stay just inside the edge
+    return {
+      x: `${(t * 100).toFixed(1)}%`,
+      y: top + rand() * (SEABED_PX - 4 - top),
+      r: 0.8 + rand() * 1.2,
+      dark: rand() > 0.35,
+    }
+  })
 })()
 
 export function OceanBackdrop() {
@@ -70,8 +83,8 @@ export function OceanBackdrop() {
           fill="hsl(40 56% 86%)"
         />
       </svg>
-      {/* Specks — unscaled pixels, so dots stay round at any width */}
-      <svg className="absolute inset-x-0 bottom-0 h-14 w-full" aria-hidden="true">
+      {/* Specks — same box as the seabed, but unscaled, so dots stay round */}
+      <svg className="absolute inset-x-0 bottom-0 h-56 w-full" aria-hidden="true">
         {specks.map((p, i) => (
           <circle
             key={i}

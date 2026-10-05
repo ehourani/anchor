@@ -123,15 +123,19 @@ export function SituationWheel({
         {situations.map((s) => (
           <div
             key={s.key}
-            className="absolute flex max-w-[26cqw] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300"
+            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300"
             style={{ ...labelPos(s.angle), opacity: expanded ? 1 : 0 }}
           >
             <s.Icon className="size-[8cqw]" strokeWidth={1.75} style={{ color: s.ink }} />
             <span
-              className="text-[3.9cqw] font-semibold leading-tight"
+              className="whitespace-nowrap text-[3.9cqw] font-semibold leading-tight"
               style={{ color: s.ink }}
             >
-              {s.label}
+              {s.wheelLines.map((line, i) => (
+                <span key={i} className="block">
+                  {line}
+                </span>
+              ))}
             </span>
           </div>
         ))}

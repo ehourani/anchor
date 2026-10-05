@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Anchor, Brain, LifeBuoy, Plus, ScrollText, X } from 'lucide-react'
+import { Anchor, LifeBuoy, NotebookPen, Plus, ScrollText, X } from 'lucide-react'
 
 // The left navigation drawer, opened from the ☰ button. Distress mode up top, then
 // quick actions, then a separator, then the "see everything" views.
@@ -83,7 +83,7 @@ export function MenuDrawer({
             Add an Anchor
           </button>
           <button className={item} onClick={run(onLogUsage)}>
-            <Brain className="size-5 text-foreground/55" />
+            <NotebookPen className="size-5 text-foreground/55" />
             I used an anchor
           </button>
 

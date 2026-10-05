@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   Anchor,
   Check,
   ChevronLeft,
   ChevronRight,
+  Info,
   LifeBuoy,
   Loader2,
+  Minus,
   Plus,
-  Sparkles,
 } from 'lucide-react'
 
 import { OceanBackdrop } from '@/components/OceanBackdrop'
@@ -15,14 +16,38 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { completeOnboarding } from '@/features/auth/auth'
 import { useSkills } from '@/features/skills/useSkills'
 import { useCreateSkill } from '@/features/skills/useCreateSkill'
+import { useDeleteSkill } from '@/features/skills/useDeleteSkill'
 import { SkillSheet } from '@/features/skills/SkillSheet'
 import type { NewSkillDraft } from '@/features/skills/skills'
+import type { Skill } from '@/features/skills/sampleSkills'
 import { CrisisSetupSheet } from '@/features/crisis/CrisisSetupSheet'
 
-// First-run setup, one calm screen at a time: welcome → name → what is Anchor
-// → add a few anchors → confirm the distress set → done. Completing it writes a flag to user_metadata
+// First-run setup, one calm screen at a time: welcome → name → what anchors are
+// → what distress anchors are → starter anchors → confirm the distress set →
+// done. Completing it writes a flag to user_metadata
 // so it never shows again. Everything is skippable — never a wall.
-const STEP_COUNT = 6
+const STEP_COUNT = 7
+
+// How many of the seeded default anchors the starter step shows.
+const STARTER_COUNT = 4
+
+// The starter anchors: the first few seeded defaults (seed order, then title).
+function pickStarters(skills: Skill[]): string[] {
+  return skills
+    .filter((s) => s.isDefault)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.title.localeCompare(b.title))
+    .slice(0, STARTER_COUNT)
+    .map((s) => s.id)
+}
+
+// Progressive build: each piece fades up after the one before it.
+function Reveal({ order, children }: { order: number; children: ReactNode }) {
+  return (
+    <div className="animate-fade-rise" style={{ animationDelay: `${order * 0.5}s` }}>
+      {children}
+    </div>
+  )
+}
 
 // Large, centered brand mark for the welcome, name, and explainer steps.
 function AnchorLogo() {
@@ -33,12 +58,71 @@ function AnchorLogo() {
   )
 }
 
-// The coral life buoy used for distress everywhere else (wheel, tab, menu).
-function DistressMark() {
+// The coral life buoy used for distress everywhere else (wheel, nav, menu).
+function DistressLogo() {
   return (
-    <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
-      <LifeBuoy className="size-7" strokeWidth={1.9} />
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
+      <LifeBuoy className="size-12" strokeWidth={1.75} />
     </span>
+  )
+}
+
+// Smaller marks above the headers of the list steps.
+function StepMark({ distress = false }: { distress?: boolean }) {
+  return (
+    <span
+      className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${
+        distress
+          ? 'bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]'
+          : 'bg-primary/15 text-primary'
+      }`}
+    >
+      {distress ? (
+        <LifeBuoy className="size-7" strokeWidth={1.9} />
+      ) : (
+        <Anchor className="size-7" strokeWidth={1.75} />
+      )}
+    </span>
+  )
+}
+
+// One starter anchor: (i) shows its description, read-only; (−) removes it.
+function StarterRow({ skill, onRemove }: { skill: Skill; onRemove: () => void }) {
+  const [showInfo, setShowInfo] = useState(false)
+  return (
+    <div className="rounded-2xl border border-white/60 bg-white/55 px-3 py-2.5 backdrop-blur-md">
+      <div className="flex items-center gap-1.5">
+        <span className="min-w-0 flex-1 truncate pl-1 text-sm font-medium text-foreground">
+          {skill.title}
+        </span>
+        {skill.description && (
+          <button
+            onClick={() => setShowInfo((v) => !v)}
+            aria-expanded={showInfo}
+            aria-label={`About ${skill.title}`}
+            className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-white/70 ${
+              showInfo ? 'text-primary' : 'text-foreground/45'
+            }`}
+          >
+            <Info className="size-5" />
+          </button>
+        )}
+        <button
+          onClick={onRemove}
+          aria-label={`Remove ${skill.title}`}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <span className="flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+            <Minus className="size-3.5" strokeWidth={3} />
+          </span>
+        </button>
+      </div>
+      {showInfo && (
+        <p className="px-1 pb-1 pt-1.5 text-sm leading-relaxed text-foreground/60">
+          {skill.description}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -46,6 +130,7 @@ export function OnboardingFlow() {
   const { user } = useAuth()
   const { data: skills = [] } = useSkills()
   const createSkill = useCreateSkill()
+  const deleteSkill = useDeleteSkill()
 
   // Pre-fill from any name we already have (e.g. from Google sign-in).
   const existingName = (user?.user_metadata?.full_name ??
@@ -61,6 +146,17 @@ export function OnboardingFlow() {
   const [crisisOpen, setCrisisOpen] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [error, setError] = useState(false)
+
+  // Fix the starter set once the anchors first load, so removing one never
+  // pulls a different default in to take its place.
+  const [starterIds, setStarterIds] = useState<string[] | null>(null)
+  useEffect(() => {
+    if (starterIds === null && skills.length > 0) setStarterIds(pickStarters(skills))
+  }, [skills, starterIds])
+  // The starters still in the toolkit, then anything the user added here.
+  const shownAnchors = skills.filter(
+    (s) => (starterIds ?? []).includes(s.id) || !s.isDefault,
+  )
 
   const crisisSkills = skills
     .filter((s) => s.crisisPriority != null)
@@ -165,71 +261,63 @@ export function OnboardingFlow() {
 
           {step === 2 && (
             <div className="text-center">
-              <AnchorLogo />
-              <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
-                What is Anchor?
-              </h1>
-              <div className="mt-5 space-y-3 text-left">
-                <div className="flex gap-3.5 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                    <Anchor className="size-5" />
-                  </span>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      Anchors are your coping skills
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-foreground/65">
-                      When you're feeling activated, an anchor is something small
-                      and healthy you can reach for to help you through it. Over
-                      time, the hope is to lean on your anchors a little more, and
-                      on ED behaviors a little less.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3.5 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
-                    <LifeBuoy className="size-5" />
-                  </span>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      Distress anchors are for the hardest moments
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-foreground/65">
-                      Distress is when urges or feelings get really loud. Your
-                      distress anchors are a short list you choose ahead of time,
-                      so they're one tap away. No searching, no deciding.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Reveal order={0}>
+                <AnchorLogo />
+              </Reveal>
+              <Reveal order={1}>
+                <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
+                  Anchors are your coping skills
+                </h1>
+              </Reveal>
+              <Reveal order={2}>
+                <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
+                  Small, healthy things to reach for when you're feeling
+                  activated, so you can lean on them instead of ED behaviors.
+                </p>
+              </Reveal>
             </div>
           )}
 
           {step === 3 && (
+            <div className="text-center">
+              <Reveal order={0}>
+                <DistressLogo />
+              </Reveal>
+              <Reveal order={1}>
+                <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
+                  Distress anchors are for the hardest moments
+                </h1>
+              </Reveal>
+              <Reveal order={2}>
+                <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
+                  When urges or feelings get really loud, you can turn to your
+                  distress anchors, one tap away.
+                </p>
+              </Reveal>
+            </div>
+          )}
+
+          {step === 4 && (
             <div className="flex min-h-0 flex-1 flex-col">
-              <h1 className="shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
-                Add a few anchors
+              <StepMark />
+              <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
+                We'll start you off with a few anchors
               </h1>
               <p className="mt-2 shrink-0 text-sm text-foreground/60">
-                You're starting with a few to get going. Add any of your own that
-                help you — you can always add more later.
+                You can always change these later.
               </p>
               <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
-                {skills.length === 0 ? (
+                {shownAnchors.length === 0 ? (
                   <p className="rounded-2xl border border-white/60 bg-white/55 p-4 text-center text-sm text-foreground/55 backdrop-blur-md">
                     Add your first anchor below.
                   </p>
                 ) : (
-                  skills.map((s) => (
-                    <div
+                  shownAnchors.map((s) => (
+                    <StarterRow
                       key={s.id}
-                      className="flex items-center gap-2.5 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md"
-                    >
-                      <Sparkles className="size-4 shrink-0 text-primary/70" />
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                        {s.title}
-                      </span>
-                    </div>
+                      skill={s}
+                      onRemove={() => deleteSkill.mutate(s.id)}
+                    />
                   ))
                 )}
               </div>
@@ -243,9 +331,9 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="flex min-h-0 flex-1 flex-col">
-              <DistressMark />
+              <StepMark distress />
               <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
                 Your distress anchors
               </h1>
@@ -287,7 +375,7 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="text-center">
               <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                 <Check className="size-8" />

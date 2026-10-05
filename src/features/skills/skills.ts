@@ -16,6 +16,7 @@ export function createSkill(draft: NewSkillDraft): Skill {
     title: draft.title.trim(),
     description: draft.description.trim(),
     crisisPriority: null,
+    isDefault: false,
     createdAt: now,
     updatedAt: now,
     tags: draft.tags,
