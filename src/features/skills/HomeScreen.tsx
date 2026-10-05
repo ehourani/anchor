@@ -203,7 +203,7 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div
-        className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1rem+env(safe-area-inset-top))] ${
+        className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] ${
           // Home stops right at the nav's top edge (its footprint: 1rem
           // offset + the ~4.9rem bar), so the hint below the buoy centers between
           // the two; other screens keep extra room to scroll clear of it.
@@ -214,7 +214,7 @@ export function HomeScreen() {
       >
         {/* Navbar — Back (below home) · brand. Everything else lives in the
             bottom nav. */}
-        <header className="relative flex shrink-0 justify-center">
+        <header className="relative mb-2 flex shrink-0 justify-center">
           {stack.length > 1 && (
             <button
               onClick={back}
@@ -228,12 +228,12 @@ export function HomeScreen() {
           <button
             onClick={goHome}
             aria-label="Anchor — go home"
-            className="flex items-center gap-2.5 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
           >
-            <span className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary">
-              <Anchor className="size-[1.4rem]" />
+            <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Anchor className="size-5" />
             </span>
-            <span className="font-display text-[1.75rem] font-bold leading-none tracking-tight text-foreground">
+            <span className="font-display text-2xl font-bold leading-none tracking-tight text-foreground">
               Anchor
             </span>
           </button>
