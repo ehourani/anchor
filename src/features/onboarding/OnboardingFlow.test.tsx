@@ -39,7 +39,12 @@ const defaults = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((title, i) =
     tags: [tag('situation', 'emotion-regulation')],
   }),
 )
-const own = makeSkill({ id: 'own', title: 'My own anchor', isDefault: false })
+const own = makeSkill({
+  id: 'own',
+  title: 'My own anchor',
+  description: 'Something that helps me.',
+  isDefault: false,
+})
 
 function renderFlow() {
   return render(
@@ -54,14 +59,16 @@ async function goToStarters(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('First name'), 'Sam')
   await user.type(screen.getByLabelText('Last name'), 'Rivera')
   await user.click(screen.getByRole('button', { name: 'Continue' }))
+  // The greeting moves on by itself after a moment.
+  await screen.findByRole('heading', { name: 'Anchors are your coping skills' }, { timeout: 3000 })
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   await user.click(screen.getByRole('button', { name: 'Continue' }))
 }
 
 const starterTitles = () =>
   screen
-    .getAllByRole('button', { name: /^Remove / })
-    .map((b) => b.getAttribute('aria-label')!.replace(/^Remove /, ''))
+    .getAllByRole('button', { name: /^About / })
+    .map((b) => b.getAttribute('aria-label')!.replace(/^About /, ''))
 
 beforeEach(() => {
   state.skills = [...defaults, own]
@@ -84,8 +91,14 @@ describe('OnboardingFlow', () => {
     await user.type(screen.getByLabelText('Last name'), 'Rivera')
     await user.click(next)
 
+    // A brief "Nice to meet you", then on to the explainer by itself.
+    expect(screen.getByText('Nice to meet you, Sam.')).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Anchors are your coping skills' }),
+      await screen.findByRole(
+        'heading',
+        { name: 'Anchors are your coping skills' },
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
@@ -130,13 +143,14 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText('How to do default two.').tagName).toBe('P')
   })
 
-  it('(−) removes a starter, and no other default takes its place', async () => {
+  it('only anchors the user added can be removed; the starters stay', async () => {
     const user = userEvent.setup()
     const { rerender } = renderFlow()
     await goToStarters(user)
 
-    await user.click(screen.getByRole('button', { name: 'Remove Default Three' }))
-    expect(deleteSkill).toHaveBeenCalledWith('default-3')
+    expect(screen.queryByRole('button', { name: /^Remove Default/ })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Remove My own anchor' }))
+    expect(deleteSkill).toHaveBeenCalledWith('own')
     rerender(
       <QueryClientProvider client={new QueryClient()}>
         <OnboardingFlow />
@@ -146,8 +160,8 @@ describe('OnboardingFlow', () => {
     expect(starterTitles()).toEqual([
       'Default One',
       'Default Two',
+      'Default Three',
       'Default Four',
-      'My own anchor',
     ])
   })
 })

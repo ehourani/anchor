@@ -49,10 +49,12 @@ function Reveal({ order, children }: { order: number; children: ReactNode }) {
   )
 }
 
-// Large, centered brand mark for the welcome, name, and explainer steps.
+// Large, centered brand mark for the welcome, name, and explainer steps. The
+// marks carry a thin border in their icon color so the soft fills don't
+// float loosely against the water.
 function AnchorLogo() {
   return (
-    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-primary/15 text-primary">
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl border-[1.5px] border-primary bg-primary/15 text-primary">
       <Anchor className="size-12" strokeWidth={1.75} />
     </span>
   )
@@ -61,7 +63,7 @@ function AnchorLogo() {
 // The coral life buoy used for distress everywhere else (wheel, nav, menu).
 function DistressLogo() {
   return (
-    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
+    <span className="mx-auto flex size-24 items-center justify-center rounded-3xl border-[1.5px] border-[hsl(8,58%,52%)] bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
       <LifeBuoy className="size-12" strokeWidth={1.75} />
     </span>
   )
@@ -71,10 +73,10 @@ function DistressLogo() {
 function StepMark({ distress = false }: { distress?: boolean }) {
   return (
     <span
-      className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${
+      className={`flex size-14 shrink-0 items-center justify-center rounded-2xl border-[1.5px] ${
         distress
-          ? 'bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]'
-          : 'bg-primary/15 text-primary'
+          ? 'border-[hsl(8,58%,52%)] bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]'
+          : 'border-primary bg-primary/15 text-primary'
       }`}
     >
       {distress ? (
@@ -86,8 +88,9 @@ function StepMark({ distress = false }: { distress?: boolean }) {
   )
 }
 
-// One starter anchor: (i) shows its description, read-only; (−) removes it.
-function StarterRow({ skill, onRemove }: { skill: Skill; onRemove: () => void }) {
+// One anchor on the starter step: (i) shows its description, read-only. Only
+// anchors the user added here can be removed (−); the starters stay.
+function StarterRow({ skill, onRemove }: { skill: Skill; onRemove?: () => void }) {
   const [showInfo, setShowInfo] = useState(false)
   return (
     <div className="rounded-2xl border border-white/60 bg-white/55 px-3 py-2.5 backdrop-blur-md">
@@ -107,15 +110,17 @@ function StarterRow({ skill, onRemove }: { skill: Skill; onRemove: () => void })
             <Info className="size-5" />
           </button>
         )}
-        <button
-          onClick={onRemove}
-          aria-label={`Remove ${skill.title}`}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
-        >
-          <span className="flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
-            <Minus className="size-3.5" strokeWidth={3} />
-          </span>
-        </button>
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            aria-label={`Remove ${skill.title}`}
+            className="flex size-9 shrink-0 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <span className="flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+              <Minus className="size-3.5" strokeWidth={3} />
+            </span>
+          </button>
+        )}
       </div>
       {showInfo && (
         <p className="px-1 pb-1 pt-1.5 text-sm leading-relaxed text-foreground/60">
@@ -146,6 +151,16 @@ export function OnboardingFlow() {
   const [crisisOpen, setCrisisOpen] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [error, setError] = useState(false)
+  // A brief "Nice to meet you" after the name step, before moving on.
+  const [greeting, setGreeting] = useState(false)
+  useEffect(() => {
+    if (!greeting) return
+    const timer = setTimeout(() => {
+      setGreeting(false)
+      setStep(2)
+    }, 1800)
+    return () => clearTimeout(timer)
+  }, [greeting])
 
   // Fix the starter set once the anchors first load, so removing one never
   // pulls a different default in to take its place.
@@ -184,7 +199,7 @@ export function OnboardingFlow() {
     'w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
+    <div className="relative flex min-h-[100dvh] flex-col px-7 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
       <OceanBackdrop />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -212,11 +227,17 @@ export function OnboardingFlow() {
 
         {/* Step content */}
         <div
-          key={step}
+          key={greeting ? 'greeting' : step}
           className="animate-fade-rise flex min-h-0 flex-1 flex-col justify-center py-8"
         >
-          {step === 0 && (
-            <div className="text-center">
+          {greeting && (
+            <p className="px-2 text-center font-display text-3xl font-semibold leading-tight text-foreground">
+              Nice to meet you, {first.trim()}.
+            </p>
+          )}
+
+          {!greeting && step === 0 && (
+            <div className="px-2 text-center">
               <AnchorLogo />
               <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-foreground">
                 Hello{first ? `, ${first}` : ''}.
@@ -229,7 +250,7 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 1 && (
+          {!greeting && step === 1 && (
             <div className="text-center">
               <AnchorLogo />
               <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
@@ -259,17 +280,15 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 2 && (
-            <div className="text-center">
+          {!greeting && step === 2 && (
+            <div className="px-2 text-center">
               <Reveal order={0}>
                 <AnchorLogo />
-              </Reveal>
-              <Reveal order={1}>
                 <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
                   Anchors are your coping skills
                 </h1>
               </Reveal>
-              <Reveal order={2}>
+              <Reveal order={1}>
                 <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
                   Small, healthy things to reach for when you're feeling
                   activated, so you can lean on them instead of ED behaviors.
@@ -278,26 +297,25 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 3 && (
-            <div className="text-center">
+          {!greeting && step === 3 && (
+            <div className="px-2 text-center">
               <Reveal order={0}>
                 <DistressLogo />
-              </Reveal>
-              <Reveal order={1}>
                 <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
                   Distress anchors are for the hardest moments
                 </h1>
               </Reveal>
-              <Reveal order={2}>
+              <Reveal order={1}>
                 <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
                   When urges or feelings get really loud, you can turn to your
-                  distress anchors, one tap away.
+                  distress anchors: a few you choose ahead of time, kept together
+                  so they're ready when you need them most.
                 </p>
               </Reveal>
             </div>
           )}
 
-          {step === 4 && (
+          {!greeting && step === 4 && (
             <div className="flex min-h-0 flex-1 flex-col">
               <StepMark />
               <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
@@ -316,7 +334,7 @@ export function OnboardingFlow() {
                     <StarterRow
                       key={s.id}
                       skill={s}
-                      onRemove={() => deleteSkill.mutate(s.id)}
+                      onRemove={s.isDefault ? undefined : () => deleteSkill.mutate(s.id)}
                     />
                   ))
                 )}
@@ -331,7 +349,7 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 5 && (
+          {!greeting && step === 5 && (
             <div className="flex min-h-0 flex-1 flex-col">
               <StepMark distress />
               <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
@@ -375,7 +393,7 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 6 && (
+          {!greeting && step === 6 && (
             <div className="text-center">
               <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                 <Check className="size-8" />
@@ -395,8 +413,8 @@ export function OnboardingFlow() {
           )}
         </div>
 
-        {/* Footer nav */}
-        <div className="shrink-0">
+        {/* Footer nav (held invisible during the greeting, so nothing jumps) */}
+        <div className={`shrink-0 ${greeting ? 'invisible' : ''}`}>
           <div className="flex items-center gap-3">
             {step > 0 && !isLast && (
               <button
@@ -408,7 +426,7 @@ export function OnboardingFlow() {
               </button>
             )}
             <button
-              onClick={isLast ? finish : next}
+              onClick={isLast ? finish : step === 1 ? () => setGreeting(true) : next}
               disabled={finishing || (step === 1 && !nameValid)}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
             >

@@ -211,8 +211,13 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div
-        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
-          isHome ? 'h-[100dvh] overflow-hidden' : 'min-h-[100dvh]'
+        className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] ${
+          // Home stops right at the nav's top edge (its footprint: 1rem
+          // offset + ~5rem bar), so the hint below the buoy centers between
+          // the two; other screens keep extra room to scroll clear of it.
+          isHome
+            ? 'h-[100dvh] overflow-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]'
+            : 'min-h-[100dvh] pb-[calc(7rem+env(safe-area-inset-bottom))]'
         }`}
       >
         {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
@@ -477,44 +482,46 @@ export function HomeScreen() {
               </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
-              <section className="mt-4 flex min-h-0 flex-1 flex-col">
-                {/* The buoy fills the leftover space as a centered square, so on
-                    short screens it shrinks to fit instead of overflowing at a
-                    fixed size and colliding with the bottom bar. */}
-                <div className="relative min-h-0 flex-1">
-                  <div className="absolute inset-0 m-auto aspect-square max-h-full max-w-[18.5rem]">
-                    <SituationWheel
-                      expanded={expanded}
-                      onToggle={() => setExpanded((e) => !e)}
-                      onSelect={(key) => {
-                        // "In distress" goes straight to distress mode — no filtering.
-                        if (key === 'crisis') {
-                          push({ k: 'crisis' })
-                          return
-                        }
-                        setFilters(emptyFilters())
-                        push({ k: 'situation', key })
-                      }}
-                    />
-                  </div>
+              {/* A size container: the buoy is a square sized to fit
+                  (at most 18.5rem, and never taller than the space minus the
+                  hint's minimum), so on short screens it shrinks instead of
+                  colliding with the nav. Leftover space splits evenly above
+                  and below the buoy; the hint sits centered in the space
+                  below, i.e. midway between the buoy and the nav. */}
+              <section className="mt-4 flex min-h-0 flex-1 flex-col items-center [container-type:size]">
+                <div className="min-h-0 flex-1" />
+                <div className="relative aspect-square w-[min(18.5rem,100cqw,calc(100cqh-4rem))] shrink-0">
+                  <SituationWheel
+                    expanded={expanded}
+                    onToggle={() => setExpanded((e) => !e)}
+                    onSelect={(key) => {
+                      // "In distress" goes straight to distress mode — no filtering.
+                      if (key === 'crisis') {
+                        push({ k: 'crisis' })
+                        return
+                      }
+                      setFilters(emptyFilters())
+                      push({ k: 'situation', key })
+                    }}
+                  />
                 </div>
-                {/* Fixed-height slot below the buoy: a gentle hint at rest,
-                    cross-fading to the question once the wheel opens. */}
-                <div className="relative mt-2 h-12 w-full shrink-0">
-                  <p
-                    className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
-                      expanded ? 'opacity-0' : 'opacity-100'
-                    }`}
-                  >
-                    Tap the anchor when you're ready
-                  </p>
-                  <p
-                    className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
-                      expanded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    What do you need right now?
-                  </p>
+                {/* A gentle hint at rest, cross-fading to the question once the
+                    wheel opens — same quiet style for both. */}
+                <div className="relative min-h-16 w-full flex-1">
+                  {[
+                    { text: "Tap the anchor when you're ready", shown: !expanded },
+                    { text: 'What do you need right now?', shown: expanded },
+                  ].map(({ text, shown }) => (
+                    <p
+                      key={text}
+                      aria-hidden={!shown}
+                      className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
+                        shown ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {text}
+                    </p>
+                  ))}
                 </div>
               </section>
             </>
