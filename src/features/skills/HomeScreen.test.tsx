@@ -342,3 +342,30 @@ describe('Add an Anchor sheet', () => {
     expect(within(sheet).getByRole('button', { name: 'Sound', pressed: true })).toBeInTheDocument()
   })
 })
+
+describe('bottom nav', () => {
+  it('has Home · My Anchors · In Distress · Reflect · Account, with Home current at home', () => {
+    renderHome()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual([
+      'Home',
+      'My Anchors',
+      'In Distress',
+      'Reflect',
+      'Account',
+    ])
+    expect(tab('Home')).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('opens Account & data from the nav, where Sign out now lives', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    // The old header profile menu is gone; Account is only in the nav.
+    expect(screen.getAllByRole('button', { name: 'Account' })).toHaveLength(1)
+
+    await user.click(tab('Account'))
+    expect(screen.getByRole('heading', { level: 1, name: 'Account & data' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    expect(tab('Account')).toHaveAttribute('aria-current', 'page')
+  })
+})

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Download, KeyRound, Loader2, Trash2 } from 'lucide-react'
+import { Download, KeyRound, Loader2, LogOut, Trash2 } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/AuthProvider'
 import {
   deleteAccount,
   hasPasswordLogin,
+  signOut,
   updatePassword,
 } from '@/features/auth/auth'
 import {
@@ -19,7 +20,8 @@ const cardClass =
 const labelClass =
   'text-xs font-medium uppercase tracking-wide text-foreground/40'
 
-// The account & data screen: who you're signed in as, change your password,
+// The account & data screen: who you're signed in as (and sign out), change
+// your password,
 // export everything you've recorded, and (carefully) delete your account.
 export function AccountScreen() {
   const { user } = useAuth()
@@ -42,6 +44,13 @@ export function AccountScreen() {
           <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
             {user?.email ?? 'your account'}
           </p>
+          <button
+            onClick={() => void signOut()}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/70 bg-white/70 py-3 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </button>
         </div>
 
         {canChangePassword && <ChangePassword />}

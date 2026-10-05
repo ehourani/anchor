@@ -6,11 +6,9 @@ import {
   CircleUser,
   House,
   LifeBuoy,
-  LogOut,
   Menu,
   NotebookPen,
   Plus,
-  Settings,
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
@@ -21,7 +19,6 @@ import { LogSheet } from '@/features/logging/LogSheet'
 import { OceanBackdrop } from '@/components/OceanBackdrop'
 import { MenuDrawer } from '@/components/MenuDrawer'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { signOut } from '@/features/auth/auth'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
 import { AccountScreen } from '@/features/account/AccountScreen'
@@ -82,13 +79,6 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
-// Experiment: `?nav=5` swaps the 3-item nav for Home · My Anchors · I'm in
-// distress · Reflect · Account, with Home marked as the current screen.
-// Remove whichever variant loses.
-const fiveItemNav =
-  typeof window !== 'undefined' &&
-  new URLSearchParams(window.location.search).get('nav') === '5'
-
 // One item in the bottom nav: icon over a label, ≥44px tall. No filled
 // backgrounds, so nothing reads as "selected" except the screen you're on,
 // which gets a small dot under its label.
@@ -110,7 +100,7 @@ function NavItem({
       onClick={onClick}
       aria-current={current ? 'page' : undefined}
       className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl pb-1.5 pt-2 font-semibold leading-tight transition-colors hover:bg-white/60 ${
-        fiveItemNav ? 'min-w-11 px-1.5 text-[0.68rem]' : 'px-0.5 text-xs'
+        'min-w-11 px-1.5 text-[0.68rem]'
       } ${
         tone === 'distress'
           ? 'text-[hsl(8,52%,46%)] hover:text-[hsl(8,58%,38%)]'
@@ -151,7 +141,6 @@ export function HomeScreen() {
   const [editSkill, setEditSkill] = useState<Skill | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters())
   const [menuOpen, setMenuOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
 
   const screen = stack[stack.length - 1]
   // The home screen is pinned to the viewport so the buoy area can flex-shrink
@@ -223,18 +212,15 @@ export function HomeScreen() {
       <div
         className={`mx-auto flex max-w-md flex-col px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] ${
           // Home stops right at the nav's top edge (its footprint: 1rem
-          // offset + ~5rem bar), so the hint below the buoy centers between
+          // offset + the ~4.9rem bar), so the hint below the buoy centers between
           // the two; other screens keep extra room to scroll clear of it.
           isHome
-            ? `h-[100dvh] overflow-hidden ${
-                fiveItemNav
-                  ? 'pb-[calc(5.9rem+env(safe-area-inset-bottom))]'
-                  : 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
-              }`
+            ? 'h-[100dvh] overflow-hidden pb-[calc(5.9rem+env(safe-area-inset-bottom))]'
             : 'min-h-[100dvh] pb-[calc(7rem+env(safe-area-inset-bottom))]'
         }`}
       >
-        {/* Navbar — menu · brand · profile (Back replaces menu below home) */}
+        {/* Navbar — menu · brand (Back replaces menu below home). Account
+            lives in the bottom nav. */}
         <header className="relative flex h-9 shrink-0 items-center justify-between">
           {stack.length > 1 ? (
             <button
@@ -267,54 +253,6 @@ export function HomeScreen() {
             </span>
           </button>
 
-          <div className="relative">
-            <button
-              aria-label="Account"
-              aria-expanded={profileOpen}
-              onClick={() => setProfileOpen((o) => !o)}
-              className={headerIconButton}
-            >
-              <CircleUser className="size-5" />
-            </button>
-
-            {profileOpen && (
-              <>
-                {/* Click-away scrim */}
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setProfileOpen(false)}
-                />
-                <div className="animate-fade-rise absolute right-0 top-11 z-50 w-60 rounded-2xl border border-white/60 bg-[hsl(196,54%,98%)]/95 p-4 shadow-[0_16px_40px_-16px_hsl(200_50%_40%_/_0.4)] backdrop-blur-md">
-                  <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                    Signed in as
-                  </p>
-                  <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
-                    {user?.email ?? 'your account'}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setProfileOpen(false)
-                      navTop({ k: 'account' })
-                    }}
-                    className="mt-3 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
-                  >
-                    <Settings className="size-4" />
-                    Account & data
-                  </button>
-                  <button
-                    onClick={() => {
-                      setProfileOpen(false)
-                      void signOut()
-                    }}
-                    className="mt-2 flex w-full items-center justify-start gap-2 rounded-xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-white hover:text-foreground"
-                  >
-                    <LogOut className="size-4" />
-                    Sign out
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
         </header>
 
         <div
@@ -544,43 +482,33 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom nav — My Anchors · In Distress · Reflect. Always
-          reachable, floating over the content so it stays in reach on long
-          lists. Distress is set apart by its coral icon + label only. */}
+      {/* Bottom nav — Home · My Anchors · In Distress · Reflect · Account.
+          Always reachable, floating over the content so it stays in reach on
+          long lists. Distress is set apart by its coral icon + label only,
+          and sits at the exact center: the two side groups each take half of
+          the remaining width and space their items evenly. */}
       <nav
         aria-label="Main"
-        className={
-          // The 5-item bar floats a little wider (closer to the screen
-          // edges) so its items have room.
-          `fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full ${
-            fiveItemNav ? 'max-w-lg px-2' : 'max-w-md px-5'
-          }`
-        }
+        className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-lg px-2"
       >
-        <div
-          className={
-            // 5 items: sized to their labels with equal gaps between them
-            // (equal-width columns made long neighbours look cramped).
-            `${fiveItemNav ? 'flex justify-evenly px-1 py-1.5' : 'grid grid-cols-3 gap-1 p-1.5'} rounded-3xl border border-white/60 bg-white/75 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`
-          }
-        >
-          {fiveItemNav && (
+        <div className="grid grid-cols-[1fr_auto_1fr] rounded-3xl border border-white/60 bg-white/75 px-1 py-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
+          <div className="flex justify-evenly">
             <NavItem
               icon={House}
               label="Home"
               current={screen.k === 'home'}
               onClick={goHome}
             />
-          )}
-          <NavItem
-            icon={Anchor}
-            label="My Anchors"
-            current={screen.k === 'all-skills'}
-            onClick={() => {
-              setFilters(emptyFilters())
-              navTop({ k: 'all-skills' })
-            }}
-          />
+            <NavItem
+              icon={Anchor}
+              label="My Anchors"
+              current={screen.k === 'all-skills'}
+              onClick={() => {
+                setFilters(emptyFilters())
+                navTop({ k: 'all-skills' })
+              }}
+            />
+          </div>
           <NavItem
             icon={LifeBuoy}
             label="In Distress"
@@ -588,20 +516,20 @@ export function HomeScreen() {
             current={screen.k === 'crisis'}
             onClick={() => navTop({ k: 'crisis' })}
           />
-          <NavItem
-            icon={NotebookPen}
-            label="Reflect"
-            current={false}
-            onClick={() => setLogOpen(true)}
-          />
-          {fiveItemNav && (
+          <div className="flex justify-evenly">
+            <NavItem
+              icon={NotebookPen}
+              label="Reflect"
+              current={false}
+              onClick={() => setLogOpen(true)}
+            />
             <NavItem
               icon={CircleUser}
               label="Account"
               current={screen.k === 'account'}
               onClick={() => navTop({ k: 'account' })}
             />
-          )}
+          </div>
         </div>
       </nav>
 
