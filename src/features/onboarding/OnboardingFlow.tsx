@@ -364,7 +364,7 @@ export function OnboardingFlow() {
               </h1>
               <p className="mt-2 shrink-0 text-sm leading-relaxed text-foreground/60">
                 Think about what truly helps you when things get really hard. These
-                are the anchors you'll see first when you tap “I'm in distress.” We've
+                are the anchors you'll see first when you tap “In Distress.” We've
                 started you with a few. Change them or put them in the order that
                 feels right to you.
               </p>

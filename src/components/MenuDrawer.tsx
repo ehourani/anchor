@@ -73,7 +73,7 @@ export function MenuDrawer({
             onClick={run(onCrisis)}
           >
             <LifeBuoy className="size-5 text-[hsl(8,58%,52%)]" />
-            I'm in distress
+            In Distress
           </button>
 
           <div className="my-2 h-px bg-foreground/10" />

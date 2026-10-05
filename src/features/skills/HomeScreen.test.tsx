@@ -78,7 +78,7 @@ function pageButton(name: string) {
   return button
 }
 
-const bottomDistressButton = () => pageButton("I'm in distress")
+const bottomDistressButton = () => pageButton("In Distress")
 
 // Anchor lists (situation lists and distress mode) render each card title as
 // an h3, in order. The always-mounted sheets use plain text, so this only sees
@@ -157,7 +157,7 @@ describe('distress mode', () => {
 
     await user.click(screen.getByRole('button', { name: 'Menu' }))
     const drawer = screen.getByRole('dialog', { name: 'Menu' })
-    await user.click(within(drawer).getByRole('button', { name: "I'm in distress" }))
+    await user.click(within(drawer).getByRole('button', { name: "In Distress" }))
 
     expect(cardTitles()).toEqual(['Grounding 5-4-3-2-1', 'Cold water'])
   })

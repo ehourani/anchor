@@ -544,7 +544,7 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom nav — My Anchors · I'm in distress · Reflect. Always
+      {/* Bottom nav — My Anchors · In Distress · Reflect. Always
           reachable, floating over the content so it stays in reach on long
           lists. Distress is set apart by its coral icon + label only. */}
       <nav
@@ -582,7 +582,7 @@ export function HomeScreen() {
           />
           <NavItem
             icon={LifeBuoy}
-            label="I'm in distress"
+            label="In Distress"
             tone="distress"
             current={screen.k === 'crisis'}
             onClick={() => navTop({ k: 'crisis' })}
