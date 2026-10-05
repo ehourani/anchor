@@ -109,8 +109,8 @@ function NavItem({
     <button
       onClick={onClick}
       aria-current={current ? 'page' : undefined}
-      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 pb-1.5 pt-2 font-semibold leading-tight transition-colors hover:bg-white/60 ${
-        fiveItemNav ? 'text-[0.68rem]' : 'text-xs'
+      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl pb-1.5 pt-2 font-semibold leading-tight transition-colors hover:bg-white/60 ${
+        fiveItemNav ? 'min-w-11 px-1.5 text-[0.68rem]' : 'px-0.5 text-xs'
       } ${
         tone === 'distress'
           ? 'text-[hsl(8,52%,46%)] hover:text-[hsl(8,58%,38%)]'
@@ -559,7 +559,9 @@ export function HomeScreen() {
       >
         <div
           className={
-            `grid ${fiveItemNav ? 'grid-cols-5 gap-0.5 px-1 py-1.5' : 'grid-cols-3 gap-1 p-1.5'} rounded-3xl border border-white/60 bg-white/75 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`
+            // 5 items: sized to their labels with equal gaps between them
+            // (equal-width columns made long neighbours look cramped).
+            `${fiveItemNav ? 'flex justify-evenly px-1 py-1.5' : 'grid grid-cols-3 gap-1 p-1.5'} rounded-3xl border border-white/60 bg-white/75 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`
           }
         >
           {fiveItemNav && (
