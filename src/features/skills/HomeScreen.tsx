@@ -319,7 +319,7 @@ export function HomeScreen() {
               />
             ) : (
               <div className="mt-5">
-                <ListNotice>Gathering this skill…</ListNotice>
+                <ListNotice>Gathering this anchor…</ListNotice>
               </div>
             )
           ) : screen.k === 'skill-logs' ? (
@@ -335,15 +335,15 @@ export function HomeScreen() {
           ) : screen.k === 'account' ? (
             <AccountScreen />
           ) : screen.k === 'all-skills' ? (
-            /* All skills — the full toolkit, alphabetical */
+            /* My Anchors — the full toolkit */
             <>
               <div className="mt-5">
                 <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
-                  All skills
+                  My Anchors
                 </h1>
                 <p className="mt-1 text-sm text-foreground/50">
                   {visibleAll.length}{' '}
-                  {visibleAll.length === 1 ? 'skill' : 'skills'}
+                  {visibleAll.length === 1 ? 'anchor' : 'anchors'}
                 </p>
               </div>
               {!isLoading && !isError && skills.length > 0 && (
@@ -353,18 +353,18 @@ export function HomeScreen() {
               )}
               <div className="mt-4 space-y-3">
                 {isLoading ? (
-                  <ListNotice>Gathering your skills…</ListNotice>
+                  <ListNotice>Gathering your anchors…</ListNotice>
                 ) : isError ? (
                   <ListNotice>
-                    We couldn't load your skills just now. Try again in a moment.
+                    We couldn't load your anchors just now. Try again in a moment.
                   </ListNotice>
                 ) : skills.length === 0 ? (
                   <ListNotice>
-                    Nothing here yet — you can add a skill with the + below.
+                    Nothing here yet — you can add an anchor with the + below.
                   </ListNotice>
                 ) : visibleAll.length === 0 ? (
                   <ListNotice>
-                    No skills match these filters — try clearing a few.
+                    No anchors match these filters — try clearing a few.
                   </ListNotice>
                 ) : (
                   visibleAll.map((skill) => (
@@ -389,7 +389,7 @@ export function HomeScreen() {
                 </h1>
                 <p className="mt-1 text-sm text-foreground/50">
                   {visibleMatches.length}{' '}
-                  {visibleMatches.length === 1 ? 'skill' : 'skills'}
+                  {visibleMatches.length === 1 ? 'anchor' : 'anchors'}
                 </p>
               </div>
               {!isLoading && !isError && matches.length > 0 && (
@@ -399,19 +399,19 @@ export function HomeScreen() {
               )}
               <div className="mt-4 space-y-3">
                 {isLoading ? (
-                  <ListNotice>Gathering your skills…</ListNotice>
+                  <ListNotice>Gathering your anchors…</ListNotice>
                 ) : isError ? (
                   <ListNotice>
-                    We couldn't load your skills just now. Check your connection
+                    We couldn't load your anchors just now. Check your connection
                     and try again in a moment.
                   </ListNotice>
                 ) : matches.length === 0 ? (
                   <ListNotice>
-                    Nothing here yet — you can add a skill with the + below.
+                    Nothing here yet — you can add an anchor with the + below.
                   </ListNotice>
                 ) : visibleMatches.length === 0 ? (
                   <ListNotice>
-                    No skills match these filters — try clearing a few.
+                    No anchors match these filters — try clearing a few.
                   </ListNotice>
                 ) : (
                   visibleMatches.map((skill) => (
@@ -488,7 +488,7 @@ export function HomeScreen() {
                       expanded={expanded}
                       onToggle={() => setExpanded((e) => !e)}
                       onSelect={(key) => {
-                        // "In crisis" goes straight to crisis mode — no filtering.
+                        // "In distress" goes straight to distress mode — no filtering.
                         if (key === 'crisis') {
                           push({ k: 'crisis' })
                           return
@@ -523,30 +523,30 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom actions — add a skill · crisis mode · log a use. Always
+      {/* Bottom actions — add an anchor · distress mode · log a use. Always
           reachable, floating over the content so they stay in reach on long,
-          scrolling lists. The crisis button is larger and red so it reads as the
+          scrolling lists. The distress button is larger and red so it reads as the
           one-tap panic target. The wrapper ignores pointer events so the gaps
           stay click-through; each button re-enables them. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 mx-auto h-14 w-full max-w-md px-5">
         <div className="relative h-full w-full">
           <button
             onClick={() => setAddOpen(true)}
-            aria-label="Add a coping skill"
+            aria-label="Add an anchor"
             className={`${bottomButton} pointer-events-auto absolute left-1/4 top-0 -translate-x-1/2`}
           >
             <Plus className="size-6" strokeWidth={1.75} />
           </button>
           <button
             onClick={() => navTop({ k: 'crisis' })}
-            aria-label="Crisis mode"
+            aria-label="I'm in distress"
             className="pointer-events-auto absolute bottom-0 left-1/2 flex size-[4.5rem] -translate-x-1/2 items-center justify-center rounded-full border border-white/60 bg-[hsl(8,76%,90%)]/70 text-[hsl(8,58%,48%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] backdrop-blur-md transition-colors hover:bg-[hsl(8,76%,88%)]/85 hover:text-[hsl(8,58%,40%)]"
           >
             <Phone className="size-8" strokeWidth={1.9} />
           </button>
           <button
             onClick={() => setLogOpen(true)}
-            aria-label="Log a coping skill"
+            aria-label="Log an anchor you used"
             className={`${bottomButton} pointer-events-auto absolute left-3/4 top-0 -translate-x-1/2`}
           >
             <NotebookPen className="size-6" strokeWidth={1.75} />

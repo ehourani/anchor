@@ -2,7 +2,7 @@ import { LifeBuoy, Sparkles, Sprout, Wind, type LucideIcon } from 'lucide-react'
 
 // The four `situation` tags (migration 0003) become the four wheel segments.
 // Each carries its on-wheel label, a gentle heading for the filtered view,
-// its position on the wheel, and a soft color. Crisis stays warm (coral) so it
+// its position on the wheel, and a soft color. Distress stays warm (coral) so it
 // reads as distinct against the cool segments — reachable in one tap, no filtering.
 export type SituationMeta = {
   key: string
@@ -21,7 +21,7 @@ export type SituationMeta = {
 export const situations: SituationMeta[] = [
   {
     key: 'crisis',
-    label: 'In crisis',
+    label: 'In distress',
     heading: "Let's just get steady",
     Icon: LifeBuoy,
     angle: -90,
@@ -41,7 +41,7 @@ export const situations: SituationMeta[] = [
   },
   {
     key: 'distraction',
-    label: 'Distract me',
+    label: 'Slow the spiral',
     heading: "Let's shift your focus for a bit",
     Icon: Sparkles,
     angle: 90,
@@ -51,7 +51,7 @@ export const situations: SituationMeta[] = [
   },
   {
     key: 'life-building',
-    label: 'Build a life',
+    label: 'Build balance',
     heading: 'Small things that build you up',
     Icon: Sprout,
     angle: 180,

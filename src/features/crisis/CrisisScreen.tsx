@@ -30,7 +30,7 @@ export function CrisisScreen({
       <div className="mt-5 flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[hsl(8,50%,46%)]">
-            In crisis
+            In distress
           </p>
           <h1 className="mt-1 font-display text-[1.7rem] font-semibold leading-tight text-foreground">
             Let's just get steady
@@ -38,7 +38,7 @@ export function CrisisScreen({
         </div>
         <button
           onClick={() => setSetupOpen(true)}
-          aria-label="Edit your crisis skills"
+          aria-label="Edit your distress anchors"
           className="-mr-1 mt-0.5 shrink-0 rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-foreground"
         >
           <Pencil className="size-5" />
@@ -49,14 +49,14 @@ export function CrisisScreen({
         {crisisSkills.length === 0 ? (
           <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center backdrop-blur-md">
             <p className="text-sm text-foreground/65">
-              Your crisis set is empty. Add a few steadying skills so they're
+              Your distress set is empty. Add a few steadying anchors so they're
               ready when you need them most.
             </p>
             <button
               onClick={() => setSetupOpen(true)}
               className="mt-4 rounded-2xl bg-primary px-5 py-3 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
             >
-              Choose your skills
+              Choose your anchors
             </button>
           </div>
         ) : (
@@ -104,7 +104,7 @@ export function CrisisScreen({
 
       <div className="flex-1" />
 
-      {/* Support is always reachable from crisis mode. */}
+      {/* Support is always reachable from distress mode. */}
       <div className="mt-8">
         <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-foreground/40">
           If you need to talk to someone

@@ -68,7 +68,7 @@ function SortableMember({
       </span>
       <button
         onClick={onRemove}
-        aria-label={`Remove ${skill.title} from your crisis set`}
+        aria-label={`Remove ${skill.title} from your distress set`}
         className="flex size-8 shrink-0 items-center justify-center rounded-full text-[hsl(8,45%,52%)] transition-colors hover:bg-white/60"
       >
         <Minus className="size-4" />
@@ -142,7 +142,7 @@ export function CrisisSetupSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Choose your crisis skills"
+        aria-label="Choose your distress anchors"
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] max-w-md flex-col rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -152,7 +152,7 @@ export function CrisisSetupSheet({
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="font-display text-lg font-semibold text-foreground">
-                Your crisis skills
+                Your distress anchors
               </h2>
               <p className="mt-0.5 text-sm text-foreground/55">
                 Pick the ones you'll want close in a hard moment, and drag to put
@@ -194,7 +194,7 @@ export function CrisisSetupSheet({
             </DndContext>
           ) : (
             <p className="rounded-2xl border border-white/70 bg-white/60 p-4 text-center text-sm text-foreground/55">
-              Your crisis set is empty. Add a few steadying skills below.
+              Your distress set is empty. Add a few steadying anchors below.
             </p>
           )}
 
@@ -202,14 +202,14 @@ export function CrisisSetupSheet({
           {others.length > 0 && (
             <>
               <p className="mb-2 mt-6 text-xs font-medium uppercase tracking-wide text-foreground/40">
-                Add more skills
+                Add more anchors
               </p>
               <div className="space-y-2">
                 {others.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => add(s)}
-                    aria-label={`Add ${s.title} to your crisis set`}
+                    aria-label={`Add ${s.title} to your distress set`}
                     className="flex w-full items-center gap-3 rounded-2xl border border-white/70 bg-white/70 p-4 text-left transition-colors hover:bg-white"
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-foreground/25">

@@ -8,10 +8,10 @@ export function AllLogsScreen() {
     <>
       <div className="mt-5">
         <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
-          Skill reflections
+          Reflections
         </h1>
         <p className="mt-1 text-sm text-foreground/50">
-          A record of when you've reached for a skill.
+          A record of when you've reached for an anchor.
         </p>
       </div>
       <div className="mt-4">

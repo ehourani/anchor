@@ -52,10 +52,10 @@ export const tagVocabulary: CategoryMeta[] = [
     multi: true,
     required: true,
     options: [
-      { slug: 'crisis', label: 'Crisis', Icon: LifeBuoy },
-      { slug: 'emotion-regulation', label: 'Emotion regulation', Icon: Wind },
-      { slug: 'distraction', label: 'Distraction', Icon: Sparkles },
-      { slug: 'life-building', label: 'Life building', Icon: Sprout },
+      { slug: 'crisis', label: 'Distress', Icon: LifeBuoy },
+      { slug: 'emotion-regulation', label: 'Calm down', Icon: Wind },
+      { slug: 'distraction', label: 'Slow the spiral', Icon: Sparkles },
+      { slug: 'life-building', label: 'Build balance', Icon: Sprout },
     ],
   },
   {

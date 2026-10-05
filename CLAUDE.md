@@ -38,6 +38,8 @@ supabase gen types typescript --linked > src/types/database.ts   # after any sch
 - Organize `src/` by **feature** (auth, skills, finder, crisis, logging, history), not by file type.
 - TypeScript throughout; lean on the generated DB types for query safety.
 - Use TanStack Query for all server data. Prefer **optimistic updates** for logging actions so they feel instant.
+- Text inputs and textareas use `text-base` (16px) or larger, so iOS Safari doesn't zoom on focus. Never fix zoom by disabling pinch-zoom in the viewport meta.
+- User-facing copy says **"anchor"** (not "skill") and **"distress"** (not "crisis"); code and DB identifiers keep `skill` / `crisis`. "Coping skill" is fine in explanatory copy, and "988 Suicide & Crisis Lifeline" is an official name.
 
 ## Product principles (these shape UI, copy, and what we build)
 

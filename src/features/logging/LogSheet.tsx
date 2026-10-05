@@ -79,7 +79,7 @@ export function LogSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Log a skill you used"
+        aria-label="Log an anchor you used"
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -88,7 +88,7 @@ export function LogSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              {selected ? selected.title : 'What skill did you use?'}
+              {selected ? selected.title : 'Which anchor did you use?'}
             </h2>
             <button
               onClick={onClose}

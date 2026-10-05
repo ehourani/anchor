@@ -152,7 +152,7 @@ function AllFiltersSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              Filter skills
+              Filter anchors
             </h2>
             <button
               onClick={onClose}

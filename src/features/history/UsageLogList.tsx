@@ -116,7 +116,7 @@ export function UsageLogList({
   if (logs.length === 0) {
     return (
       <div className="rounded-2xl border border-white/60 bg-white/55 p-6 text-center text-sm text-foreground/60 backdrop-blur-md">
-        No entries yet. Each time you use a skill, it'll show up here.
+        No entries yet. Each time you use an anchor, it'll show up here.
       </div>
     )
   }
@@ -197,7 +197,7 @@ export function UsageLogList({
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">
                 This single reflection will be taken out of your history. Your
-                skill stays in your toolkit. This can't be undone.
+                anchor stays in your toolkit. This can't be undone.
               </p>
               <div className="mt-5 space-y-2.5">
                 <button

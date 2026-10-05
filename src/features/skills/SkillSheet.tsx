@@ -129,7 +129,7 @@ export function SkillSheet({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={isEdit ? 'Edit a coping skill' : 'Add a coping skill'}
+        aria-label={isEdit ? 'Edit an anchor' : 'Add an Anchor'}
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[90dvh] max-w-md flex-col rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -143,8 +143,8 @@ export function SkillSheet({
                   ? 'Saved'
                   : 'Added to your toolkit'
                 : isEdit
-                  ? 'Edit skill'
-                  : 'Add a skill'}
+                  ? 'Edit anchor'
+                  : 'Add an Anchor'}
             </h2>
             <button
               onClick={onClose}
@@ -183,8 +183,8 @@ export function SkillSheet({
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Name this skill"
-                  className="mt-1.5 w-full rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Name this anchor"
+                  className="mt-1.5 w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
@@ -200,7 +200,7 @@ export function SkillSheet({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What is it, and how do you do it?"
                   rows={3}
-                  className="mt-1.5 w-full resize-none rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="mt-1.5 w-full resize-none rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
@@ -261,7 +261,7 @@ export function SkillSheet({
                     : 'Adding…'
                   : isEdit
                     ? 'Save changes'
-                    : 'Add skill'}
+                    : 'Add anchor'}
               </button>
             </div>
           </>

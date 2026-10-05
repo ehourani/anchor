@@ -7,7 +7,7 @@ import { signInWithEmail, signInWithGoogle, signUpWithEmail } from './auth'
 type Mode = 'signin' | 'signup'
 
 const fieldClass =
-  'w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-[0.95rem] text-foreground placeholder:text-foreground/35 shadow-sm backdrop-blur-sm transition-colors focus:border-primary/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30'
+  'w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 shadow-sm backdrop-blur-sm transition-colors focus:border-primary/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30'
 
 // The Google "G", inline so we don't pull in another icon dependency.
 function GoogleMark() {

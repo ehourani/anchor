@@ -85,7 +85,7 @@ export function SkillDetail({
             {skill.crisisPriority !== null && (
               <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[hsl(10,76%,93%)] px-2.5 py-1 text-xs font-semibold text-[hsl(8,50%,42%)]">
                 <LifeBuoy className="size-3.5" />
-                In your crisis set
+                In your distress set
               </span>
             )}
             <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
@@ -102,7 +102,7 @@ export function SkillDetail({
               }
               aria-pressed={inCrisisSet}
               aria-label={
-                inCrisisSet ? 'Remove from crisis set' : 'Add to crisis set'
+                inCrisisSet ? 'Remove from distress set' : 'Add to distress set'
               }
               className={`rounded-full p-2 transition-colors hover:bg-white/60 ${
                 inCrisisSet
@@ -114,7 +114,7 @@ export function SkillDetail({
             </button>
             <button
               onClick={onEdit}
-              aria-label="Edit skill"
+              aria-label="Edit anchor"
               className="rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-foreground"
             >
               <Pencil className="size-5" />
@@ -211,7 +211,7 @@ export function SkillDetail({
             className="mx-auto mt-1 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-foreground/40 transition-colors hover:text-destructive"
           >
             <Trash2 className="size-4" />
-            Remove this skill
+            Remove this anchor
           </button>
         </div>
       )}
@@ -226,7 +226,7 @@ export function SkillDetail({
             <div
               role="dialog"
               aria-modal="true"
-              aria-label="Remove this skill"
+              aria-label="Remove this anchor"
               className="animate-fade-rise fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl border border-white/60 bg-[hsl(196,54%,98%)] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-12px_40px_-12px_hsl(200_50%_40%_/_0.3)]"
             >
               <h2 className="font-display text-lg font-semibold text-foreground">
@@ -241,7 +241,7 @@ export function SkillDetail({
                   onClick={handleDelete}
                   className="w-full rounded-2xl bg-destructive py-3.5 font-semibold text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90"
                 >
-                  Remove skill
+                  Remove anchor
                 </button>
                 <button
                   onClick={() => setConfirmingDelete(false)}

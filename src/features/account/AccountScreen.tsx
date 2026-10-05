@@ -81,7 +81,7 @@ function ChangePassword() {
   )
 
   const inputClass =
-    'w-full rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+    'w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 
   const save = async () => {
     setMessage(null)
@@ -173,7 +173,7 @@ function ExportData() {
 
   const options: { key: string; label: string; fn: () => Promise<void> }[] = [
     { key: 'json', label: 'Everything (JSON)', fn: exportJson },
-    { key: 'skills', label: 'Skills (CSV)', fn: exportSkillsCsv },
+    { key: 'skills', label: 'Anchors (CSV)', fn: exportSkillsCsv },
     { key: 'reflections', label: 'Reflections (CSV)', fn: exportReflectionsCsv },
   ]
 
@@ -239,7 +239,7 @@ function DangerZone() {
         Delete account
       </p>
       <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">
-        Permanently delete your account and everything in it — your skills and
+        Permanently delete your account and everything in it — your anchors and
         all your reflections. This can't be undone.
       </p>
       <button
@@ -276,7 +276,7 @@ function DangerZone() {
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder="delete"
                 autoFocus
-                className="mt-4 w-full rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-destructive focus:outline-none focus:ring-2 focus:ring-destructive/20"
+                className="mt-4 w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-destructive focus:outline-none focus:ring-2 focus:ring-destructive/20"
               />
               {error && (
                 <p className="mt-2.5 text-sm text-destructive">

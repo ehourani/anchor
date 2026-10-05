@@ -19,8 +19,8 @@ import { SkillSheet } from '@/features/skills/SkillSheet'
 import type { NewSkillDraft } from '@/features/skills/skills'
 import { CrisisSetupSheet } from '@/features/crisis/CrisisSetupSheet'
 
-// First-run setup, one calm screen at a time: welcome → name → add a few skills
-// → confirm the crisis set → done. Completing it writes a flag to user_metadata
+// First-run setup, one calm screen at a time: welcome → name → add a few anchors
+// → confirm the distress set → done. Completing it writes a flag to user_metadata
 // so it never shows again. Everything is skippable — never a wall.
 const STEP_COUNT = 5
 
@@ -76,7 +76,7 @@ export function OnboardingFlow() {
   const nameValid = first.trim().length > 0 && last.trim().length > 0
 
   const inputClass =
-    'w-full rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+    'w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
@@ -155,7 +155,7 @@ export function OnboardingFlow() {
           {step === 2 && (
             <div className="flex min-h-0 flex-1 flex-col">
               <h1 className="shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
-                Add a few skills
+                Add a few anchors
               </h1>
               <p className="mt-2 shrink-0 text-sm text-foreground/60">
                 You're starting with a few to get going. Add any of your own that
@@ -164,7 +164,7 @@ export function OnboardingFlow() {
               <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
                 {skills.length === 0 ? (
                   <p className="rounded-2xl border border-white/60 bg-white/55 p-4 text-center text-sm text-foreground/55 backdrop-blur-md">
-                    Add your first skill below.
+                    Add your first anchor below.
                   </p>
                 ) : (
                   skills.map((s) => (
@@ -185,7 +185,7 @@ export function OnboardingFlow() {
                 className="mt-3 flex shrink-0 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-primary/40 bg-primary/5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
               >
                 <Plus className="size-4" />
-                Add a skill
+                Add an Anchor
               </button>
             </div>
           )}
@@ -193,7 +193,7 @@ export function OnboardingFlow() {
           {step === 3 && (
             <div className="flex min-h-0 flex-1 flex-col">
               <h1 className="shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
-                Set up your crisis skills
+                Set up your distress anchors
               </h1>
               <p className="mt-2 shrink-0 text-sm leading-relaxed text-foreground/60">
                 These are the ones you'll reach for first in a hard moment — one tap
@@ -203,7 +203,7 @@ export function OnboardingFlow() {
               <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
                 {crisisSkills.length === 0 ? (
                   <p className="rounded-2xl border border-white/60 bg-white/55 p-4 text-center text-sm text-foreground/55 backdrop-blur-md">
-                    No crisis skills yet — choose a few below.
+                    No distress anchors yet — choose a few below.
                   </p>
                 ) : (
                   crisisSkills.map((s, i) => (
@@ -226,7 +226,7 @@ export function OnboardingFlow() {
                 className="mt-3 flex shrink-0 w-full items-center justify-center gap-2 rounded-2xl border border-[hsl(8,64%,58%)]/40 bg-[hsl(10,76%,93%)]/60 py-3 text-sm font-semibold text-[hsl(8,50%,42%)] transition-colors hover:bg-[hsl(10,76%,93%)]"
               >
                 <LifeBuoy className="size-4" />
-                Update crisis skills
+                Update distress anchors
               </button>
             </div>
           )}

@@ -54,7 +54,7 @@ export function LogReflection({
         onChange={(e) => onChange(helpfulness, e.target.value)}
         placeholder="Anything you'd like to remember? (optional)"
         rows={2}
-        className="mt-4 w-full resize-none rounded-xl border border-border bg-white/70 p-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="mt-4 w-full resize-none rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       />
     </div>
   )
