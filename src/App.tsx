@@ -25,6 +25,9 @@ export default function App() {
 
   if (!session) return <AuthScreen />
   // New accounts go through first-run onboarding once (flag in user_metadata).
-  if (!isOnboarded(user)) return <OnboardingFlow />
+  // In dev, `?onboarding` replays it on any account for review.
+  const previewOnboarding =
+    import.meta.env.DEV && new URLSearchParams(window.location.search).has('onboarding')
+  if (!isOnboarded(user) || previewOnboarding) return <OnboardingFlow />
   return <HomeScreen />
 }

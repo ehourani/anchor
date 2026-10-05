@@ -44,13 +44,10 @@ function labelPos(centerDeg: number) {
 }
 
 export function SituationWheel({
-  showAnchor = true,
   expanded,
   onToggle,
   onSelect,
 }: {
-  /** Spike (ANC-48): false hides the anchor in the middle of the buoy. */
-  showAnchor?: boolean
   expanded: boolean
   onToggle: () => void
   onSelect: (key: string) => void
@@ -138,15 +135,13 @@ export function SituationWheel({
             </span>
           </div>
         ))}
-        {showAnchor && (
-          <div
-            className={`absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[width,height] duration-[360ms] ${
-              expanded ? 'size-[21%]' : 'size-[27%]'
-            }`}
-          >
-            <Anchor className="size-full text-foreground" strokeWidth={1.5} />
-          </div>
-        )}
+        <div
+          className={`absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[width,height] duration-[360ms] ${
+            expanded ? 'size-[21%]' : 'size-[27%]'
+          }`}
+        >
+          <Anchor className="size-full text-foreground" strokeWidth={1.5} />
+        </div>
       </div>
     </div>
   )

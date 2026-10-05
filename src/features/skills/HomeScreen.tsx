@@ -81,15 +81,11 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
-// Shared style for the bottom tab buttons: icon over a label, ≥44px tall.
-const tabButton =
-  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs font-semibold leading-tight transition-colors'
-
-// Spike (ANC-48): `?wheel=plain` shows the buoy without the anchor in the
-// middle, to compare on-device before deciding. Remove once decided.
-const plainWheel =
-  typeof window !== 'undefined' &&
-  new URLSearchParams(window.location.search).get('wheel') === 'plain'
+// Shared style for the round bottom buttons: icon over a short label, sized
+// to hold both. The distress button in the middle is larger and coral.
+const roundButton =
+  'pointer-events-auto absolute flex -translate-x-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-white/60 text-center text-[0.68rem] font-semibold leading-tight backdrop-blur-md transition-colors'
+const sideButton = `${roundButton} top-2 size-[4.75rem] bg-white/70 px-2 text-foreground/70 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] hover:bg-white hover:text-foreground`
 
 // Shared style for the "Add an Anchor" call to action on list screens.
 const addAnchorButton =
@@ -183,7 +179,7 @@ export function HomeScreen() {
       <OceanBackdrop />
 
       <div
-        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
+        className={`mx-auto flex max-w-md flex-col px-5 pb-[calc(8rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] ${
           isHome ? 'h-[100dvh] overflow-hidden' : 'min-h-[100dvh]'
         }`}
       >
@@ -429,7 +425,7 @@ export function HomeScreen() {
                 {todaysSkill && (
                   <div className="mt-4 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
                     <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                      Today's Skill
+                      Today's Skill to practice
                     </p>
                     <p className="mt-1 font-display text-base font-semibold text-foreground">
                       {todaysSkill.title}
@@ -468,7 +464,6 @@ export function HomeScreen() {
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute inset-0 m-auto aspect-square max-h-full max-w-[18.5rem]">
                     <SituationWheel
-                      showAnchor={!plainWheel}
                       expanded={expanded}
                       onToggle={() => setExpanded((e) => !e)}
                       onSelect={(key) => {
@@ -490,18 +485,14 @@ export function HomeScreen() {
                       expanded ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
-                    {plainWheel
-                      ? "Tap the buoy when you're ready"
-                      : "Tap the anchor when you're ready"}
+                    Tap the anchor when you're ready
                   </p>
                   <p
                     className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
                       expanded ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    {plainWheel
-                      ? 'Pick one that would help, or tap the center to go back'
-                      : 'Pick one that would help, or tap the anchor again to go back'}
+                    Pick one that would help, or tap the anchor again to go back
                   </p>
                 </div>
               </section>
@@ -511,43 +502,38 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom tabs — My Anchors · I'm in distress · Reflect. Always
-          reachable, floating over the content so they stay in reach on long,
-          scrolling lists. Distress sits in the middle in coral so it reads as
-          the one-tap target for a hard moment. */}
+      {/* Bottom actions — My Anchors · I'm in distress · Reflect. Round,
+          labeled buttons, always reachable and floating over the content so
+          they stay in reach on long lists. Distress is larger and coral so it
+          reads as the one-tap target for a hard moment. The wrapper ignores
+          pointer events so the gaps stay click-through. */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-30 mx-auto h-[5.75rem] w-full max-w-md px-5"
       >
-        <div className="grid grid-cols-3 gap-1.5 rounded-3xl border border-white/60 bg-white/70 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
+        <div className="relative h-full w-full">
           <button
             onClick={() => {
               setFilters(emptyFilters())
               navTop({ k: 'all-skills' })
             }}
-            aria-current={screen.k === 'all-skills' ? 'page' : undefined}
-            className={`${tabButton} ${
-              screen.k === 'all-skills'
-                ? 'bg-white text-foreground'
-                : 'text-foreground/65 hover:bg-white/80 hover:text-foreground'
-            }`}
+            className={`${sideButton} left-[18%]`}
           >
-            <Anchor className="size-6" strokeWidth={1.75} />
+            <Anchor className="size-6 shrink-0" strokeWidth={1.75} />
             My Anchors
           </button>
           <button
             onClick={() => navTop({ k: 'crisis' })}
-            aria-current={screen.k === 'crisis' ? 'page' : undefined}
-            className={`${tabButton} bg-[hsl(10,76%,93%)] text-[hsl(8,52%,44%)] hover:bg-[hsl(10,76%,89%)] hover:text-[hsl(8,58%,38%)]`}
+            className={`${roundButton} bottom-0 left-1/2 size-[5.75rem] bg-[hsl(8,76%,90%)]/75 px-2.5 text-[hsl(8,52%,42%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] hover:bg-[hsl(8,76%,88%)]/90 hover:text-[hsl(8,58%,36%)]`}
           >
-            <LifeBuoy className="size-6" strokeWidth={1.9} />
+            <LifeBuoy className="size-7 shrink-0" strokeWidth={1.9} />
             I'm in distress
           </button>
           <button
             onClick={() => setLogOpen(true)}
-            className={`${tabButton} text-foreground/65 hover:bg-white/80 hover:text-foreground`}
+            className={`${sideButton} left-[82%]`}
           >
-            <Brain className="size-6" strokeWidth={1.75} />
+            <Brain className="size-6 shrink-0" strokeWidth={1.75} />
             Reflect
           </button>
         </div>

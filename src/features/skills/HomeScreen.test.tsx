@@ -30,12 +30,6 @@ vi.mock('@/features/history/useUsageLogs', async (importOriginal) => ({
 vi.mock('@/features/logging/useUsageLogger', () => ({
   useUsageLogger: () => logger,
 }))
-// The distress-set write itself; the optimistic hook around it stays real.
-const writes = vi.hoisted(() => ({ setCrisisPriority: vi.fn() }))
-vi.mock('./skills', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('./skills')>()),
-  setCrisisPriority: writes.setCrisisPriority,
-}))
 
 const grounding = makeSkill({
   id: 'grounding',
@@ -107,7 +101,6 @@ beforeEach(() => {
   state.skills = [walk, coldWater, boxBreathing, grounding]
   logger.startLog.mockClear()
   logger.saveReflection.mockClear()
-  writes.setCrisisPriority.mockReset().mockResolvedValue(undefined)
 })
 
 describe('find → open → log', () => {
@@ -214,19 +207,17 @@ describe('My Anchors', () => {
     expect(quick.slice(0, 4)).toEqual(['Low Effort', 'Slow the spiral', 'Touch', 'DBT'])
   })
 
-  it('toggles distress-set membership from the card; adding appends to the end', async () => {
+  it('marks distress-set anchors with a buoy, and only those', async () => {
     const user = userEvent.setup()
     renderHome()
     await user.click(tab('My Anchors'))
 
-    const inSet = screen.getByRole('button', { name: 'Remove Cold water from your distress set' })
-    expect(inSet).toHaveAttribute('aria-pressed', 'true')
-
-    await user.click(screen.getByRole('button', { name: 'Add Box breathing to your distress set' }))
-    expect(writes.setCrisisPriority).toHaveBeenCalledWith('box-breathing', 3)
-
-    await user.click(inSet)
-    expect(writes.setCrisisPriority).toHaveBeenCalledWith('cold-water', null)
+    const marked = screen
+      .getAllByRole('img', { name: 'In your distress set' })
+      .map((m) => m.closest('[class*="cursor-pointer"]')?.querySelector('h3')?.textContent)
+    expect(marked.sort()).toEqual(['Cold water', 'Grounding 5-4-3-2-1'])
+    // It's a marker, not a toggle.
+    expect(screen.queryByRole('button', { name: /distress set/ })).not.toBeInTheDocument()
   })
 
   it('has no favorites anywhere', async () => {
@@ -246,7 +237,7 @@ describe('My Anchors', () => {
 describe("Today's Skill", () => {
   it('suggests only a Build balance anchor', () => {
     renderHome()
-    const card = screen.getByText("Today's Skill").parentElement!
+    const card = screen.getByText("Today's Skill to practice").parentElement!
     // Gentle walk is the only Build balance anchor in the fixtures.
     expect(within(card).getByText('Gentle walk')).toBeInTheDocument()
   })
@@ -254,7 +245,7 @@ describe("Today's Skill", () => {
   it('is hidden when there are no Build balance anchors', () => {
     state.skills = [grounding, coldWater, boxBreathing]
     renderHome()
-    expect(screen.queryByText("Today's Skill")).not.toBeInTheDocument()
+    expect(screen.queryByText("Today's Skill to practice")).not.toBeInTheDocument()
   })
 })
 
