@@ -6,7 +6,6 @@ import {
   CircleUser,
   House,
   LifeBuoy,
-  Menu,
   NotebookPen,
   Plus,
 } from 'lucide-react'
@@ -17,7 +16,6 @@ import { situations } from '@/features/finder/situations'
 import { CrisisScreen } from '@/features/crisis/CrisisScreen'
 import { LogSheet } from '@/features/logging/LogSheet'
 import { OceanBackdrop } from '@/components/OceanBackdrop'
-import { MenuDrawer } from '@/components/MenuDrawer'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
@@ -74,10 +72,6 @@ function screenKey(s: Screen): string {
   if (s.k === 'skill-logs') return `skill-logs:${s.id}`
   return s.k
 }
-
-// Shared style for the small circular navbar icon buttons (menu · profile).
-const headerIconButton =
-  'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
 // One item in the bottom nav: icon over a label, ≥44px tall. No filled
 // backgrounds, so nothing reads as "selected" except the screen you're on,
@@ -140,7 +134,6 @@ export function HomeScreen() {
   const [addOpen, setAddOpen] = useState(false)
   const [editSkill, setEditSkill] = useState<Skill | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters())
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const screen = stack[stack.length - 1]
   // The home screen is pinned to the viewport so the buoy area can flex-shrink
@@ -153,7 +146,7 @@ export function HomeScreen() {
     setStack([{ k: 'home' }])
     setExpanded(false)
   }
-  // The drawer's "All …" views reset to one level deep, so Back returns home.
+  // Bottom-nav destinations reset to one level deep, so Back returns home.
   const navTop = (s: Screen) => setStack([{ k: 'home' }, s])
 
   // Live, per-user skills from Supabase.
@@ -219,24 +212,16 @@ export function HomeScreen() {
             : 'min-h-[100dvh] pb-[calc(7rem+env(safe-area-inset-bottom))]'
         }`}
       >
-        {/* Navbar — menu · brand (Back replaces menu below home). Account
-            lives in the bottom nav. */}
+        {/* Navbar — Back (below home) · brand. Everything else lives in the
+            bottom nav. */}
         <header className="relative flex h-9 shrink-0 items-center justify-between">
-          {stack.length > 1 ? (
+          {stack.length > 1 && (
             <button
               onClick={back}
               className="flex items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
             >
               <ChevronLeft className="size-4" />
               Back
-            </button>
-          ) : (
-            <button
-              aria-label="Menu"
-              onClick={() => setMenuOpen(true)}
-              className={headerIconButton}
-            >
-              <Menu className="size-5" />
             </button>
           )}
 
@@ -533,18 +518,6 @@ export function HomeScreen() {
         </div>
       </nav>
 
-      <MenuDrawer
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onCrisis={() => navTop({ k: 'crisis' })}
-        onAddSkill={() => setAddOpen(true)}
-        onLogUsage={() => setLogOpen(true)}
-        onAllSkills={() => {
-          setFilters(emptyFilters())
-          navTop({ k: 'all-skills' })
-        }}
-        onAllLogs={() => navTop({ k: 'all-logs' })}
-      />
       <LogSheet
         open={logOpen}
         onClose={() => setLogOpen(false)}

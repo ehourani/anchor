@@ -63,13 +63,13 @@ function renderHome() {
   )
 }
 
-// A bottom tab by name (the menu drawer has same-named items too).
+// A bottom-nav item by name.
 function tab(name: string) {
   return within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name })
 }
 
-// A button on the page itself, not in the (always-mounted) menu drawer or a
-// sheet, which may carry a same-named item.
+// A button on the page itself, not in an (always-mounted) sheet, which may
+// carry a same-named item.
 function pageButton(name: string) {
   const button = screen
     .getAllByRole('button', { name })
@@ -149,17 +149,6 @@ describe('distress mode', () => {
     expect(cardTitles()).toEqual(['Grounding 5-4-3-2-1', 'Cold water'])
     expect(screen.queryByRole('button', { name: /filters/i })).not.toBeInTheDocument()
     expectSupportLinks()
-  })
-
-  it('is reachable from the menu drawer', async () => {
-    const user = userEvent.setup()
-    renderHome()
-
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
-    const drawer = screen.getByRole('dialog', { name: 'Menu' })
-    await user.click(within(drawer).getByRole('button', { name: "In Distress" }))
-
-    expect(cardTitles()).toEqual(['Grounding 5-4-3-2-1', 'Cold water'])
   })
 
   it('still shows support links when the distress set is empty', async () => {
@@ -355,6 +344,8 @@ describe('bottom nav', () => {
       'Account',
     ])
     expect(tab('Home')).toHaveAttribute('aria-current', 'page')
+    // No menu drawer: everything it held lives in the nav (or My Anchors).
+    expect(screen.queryByRole('button', { name: 'Menu' })).not.toBeInTheDocument()
   })
 
   it('opens Account & data from the nav, where Sign out now lives', async () => {
