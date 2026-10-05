@@ -120,7 +120,7 @@ function NavItem({
       }`}
     >
       <Icon className="size-6 shrink-0" strokeWidth={tone === 'distress' ? 1.9 : 1.75} />
-      {label}
+      <span className="whitespace-nowrap">{label}</span>
       <span
         aria-hidden="true"
         className={`size-1 rounded-full ${current ? 'bg-current' : 'bg-transparent'}`}
@@ -228,7 +228,7 @@ export function HomeScreen() {
           isHome
             ? `h-[100dvh] overflow-hidden ${
                 fiveItemNav
-                  ? 'pb-[calc(4.6rem+env(safe-area-inset-bottom))]'
+                  ? 'pb-[calc(5.9rem+env(safe-area-inset-bottom))]'
                   : 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
               }`
             : 'min-h-[100dvh] pb-[calc(7rem+env(safe-area-inset-bottom))]'
@@ -550,17 +550,16 @@ export function HomeScreen() {
       <nav
         aria-label="Main"
         className={
-          fiveItemNav
-            ? // Full-width bar, flush with the bottom and side edges.
-              'fixed inset-x-0 bottom-0 z-30 border-t border-white/70 bg-white/80 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_hsl(200_50%_40%_/_0.25)] backdrop-blur-md'
-            : 'fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5'
+          // The 5-item bar floats a little wider (closer to the screen
+          // edges) so its items have room.
+          `fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full ${
+            fiveItemNav ? 'max-w-lg px-2' : 'max-w-md px-5'
+          }`
         }
       >
         <div
           className={
-            fiveItemNav
-              ? 'grid w-full grid-cols-5 py-1'
-              : 'grid grid-cols-3 gap-1 rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md'
+            `grid ${fiveItemNav ? 'grid-cols-5 gap-0.5 px-1 py-1.5' : 'grid-cols-3 gap-1 p-1.5'} rounded-3xl border border-white/60 bg-white/75 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`
           }
         >
           {fiveItemNav && (
