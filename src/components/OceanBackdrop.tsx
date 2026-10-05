@@ -12,6 +12,23 @@ const bubbles = [
   { left: '92%', size: 12, delay: '4s', duration: '17s' },
 ]
 
+// Specks in the sand: a fixed scatter (seeded, so it never shifts between
+// renders) of small, soft dots. x is a % of the width; y is px from the top of
+// a 56px band at the very bottom, which always sits inside the seabed mound.
+const specks = (() => {
+  let seed = 7
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return seed / 2147483647
+  }
+  return Array.from({ length: 34 }, () => ({
+    x: `${(rand() * 100).toFixed(1)}%`,
+    y: 6 + rand() * 46,
+    r: 0.8 + rand() * 1.2,
+    dark: rand() > 0.35,
+  }))
+})()
+
 export function OceanBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -52,6 +69,19 @@ export function OceanBackdrop() {
           d="M0 104 C 480 72, 960 72, 1440 96 L 1440 160 L 0 160 Z"
           fill="hsl(40 56% 86%)"
         />
+      </svg>
+      {/* Specks — unscaled pixels, so dots stay round at any width */}
+      <svg className="absolute inset-x-0 bottom-0 h-14 w-full" aria-hidden="true">
+        {specks.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={p.r}
+            fill={p.dark ? 'hsl(34 34% 64%)' : 'hsl(42 70% 96%)'}
+            opacity={p.dark ? 0.55 : 0.8}
+          />
+        ))}
       </svg>
     </div>
   )

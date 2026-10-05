@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, ChevronRight, X } from 'lucide-react'
+import { Check, ChevronRight, Plus, ScrollText, Search, X } from 'lucide-react'
 
 import type { Skill } from '@/features/skills/sampleSkills'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
@@ -7,18 +7,24 @@ import { type Helpfulness } from './logging'
 import { useUsageLogger } from './useUsageLogger'
 import { LogReflection } from './LogReflection'
 
-// Quick "log a skill you used" sheet, opened from the notebook button. Pick a
-// skill → it logs instantly → optional, skippable reflection.
+// Quick "I used an anchor" sheet, opened from the Reflect tab. Search or pick
+// an anchor → it logs instantly → optional, skippable reflection. Past
+// reflections are one tap away from the picker.
 export function LogSheet({
   open,
   onClose,
   skills,
+  onViewReflections,
+  onAddNew,
 }: {
   open: boolean
   onClose: () => void
   skills: Skill[]
+  onViewReflections: () => void
+  onAddNew: () => void
 }) {
   const [skillId, setSkillId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
   const { startLog, saveReflection: persistReflection } = useUsageLogger()
@@ -37,10 +43,17 @@ export function LogSheet({
     })
   }, [skills, usageStats])
 
+  // Title search over the already-loaded anchors; no extra queries.
+  const needle = query.trim().toLowerCase()
+  const results = needle
+    ? ordered.filter((s) => s.title.toLowerCase().includes(needle))
+    : ordered
+
   // Fresh start each time the sheet opens.
   useEffect(() => {
     if (open) {
       setSkillId(null)
+      setQuery('')
       setHelpfulness(null)
       setNote('')
     }
@@ -58,6 +71,12 @@ export function LogSheet({
   const pick = (id: string) => {
     setSkillId(id)
     startLog(id)
+  }
+
+  // Close this sheet, then hand off (to history, or to the Add an Anchor sheet).
+  const leaveTo = (fn: () => void) => () => {
+    onClose()
+    fn()
   }
 
   const saveReflection = (h: Helpfulness | null, n: string) => {
@@ -98,6 +117,28 @@ export function LogSheet({
               <X className="size-5" />
             </button>
           </div>
+          {!selected && (
+            <div className="relative mt-3">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search your anchors"
+                aria-label="Search your anchors"
+                className="w-full rounded-xl border border-border bg-white/70 py-2.5 pl-10 pr-10 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 [&::-webkit-search-cancel-button]:hidden"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-foreground/45 transition-colors hover:bg-foreground/5 hover:text-foreground"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-3">
@@ -121,7 +162,21 @@ export function LogSheet({
             </div>
           ) : (
             <div className="space-y-2">
-              {ordered.map((s) => (
+              {results.length === 0 && needle && (
+                <div className="rounded-2xl border border-white/70 bg-white/60 p-5 text-center">
+                  <p className="text-sm text-foreground/60">
+                    No anchors match “{query.trim()}”.
+                  </p>
+                  <button
+                    onClick={leaveTo(onAddNew)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                  >
+                    <Plus className="size-4" />
+                    Add a new anchor
+                  </button>
+                </div>
+              )}
+              {results.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => pick(s.id)}
@@ -133,6 +188,13 @@ export function LogSheet({
                   <ChevronRight className="size-5 shrink-0 text-foreground/40" />
                 </button>
               ))}
+              <button
+                onClick={leaveTo(onViewReflections)}
+                className="mx-auto mt-3 flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-foreground/55 transition-colors hover:bg-white/60 hover:text-foreground"
+              >
+                <ScrollText className="size-4" />
+                See past reflections
+              </button>
             </div>
           )}
         </div>

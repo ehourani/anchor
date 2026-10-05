@@ -13,13 +13,13 @@ import {
   type Filters,
 } from './filters'
 
-// The filters surfaced inline, in priority order: low-effort first, then the
-// most useful settings. Everything else lives behind "All filters".
+// The filters surfaced inline, in this order. Everything else lives behind
+// "All filters".
 const QUICK: { category: TagCategory; slug: string }[] = [
   { category: 'effort', slug: 'low' },
-  { category: 'setting', slug: 'anywhere' },
-  { category: 'setting', slug: 'home' },
-  { category: 'setting', slug: 'out-in-public' },
+  { category: 'situation', slug: 'distraction' },
+  { category: 'senses', slug: 'touch' },
+  { category: 'modality', slug: 'dbt' },
 ]
 
 function FilterChip({

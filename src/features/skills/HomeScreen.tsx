@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import {
   Anchor,
+  Brain,
   ChevronLeft,
   ChevronRight,
   CircleUser,
+  LifeBuoy,
   LogOut,
   Menu,
-  NotebookPen,
-  Phone,
   Plus,
   Settings,
 } from 'lucide-react'
@@ -32,8 +32,8 @@ import { SkillFilters } from './SkillFilters'
 import type { Skill } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
 import { emptyFilters, matchesFilters, type Filters } from './filters'
-import { pickInvitation } from './invitation'
-import { compareSituationMatches, compareToolkit } from './sorting'
+import { pickTodaysSkill } from './invitation'
+import { compareByLatestActivity, compareSituationMatches } from './sorting'
 import { useSkills } from './useSkills'
 import { useCreateSkill } from './useCreateSkill'
 import { useUpdateSkill } from './useUpdateSkill'
@@ -81,10 +81,19 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
-// Shared style for the bottom action buttons (add · log). The crisis button in
-// the middle is styled distinctly below.
-const bottomButton =
-  'flex size-14 items-center justify-center rounded-full border border-white/60 bg-white/65 text-foreground/65 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md transition-colors hover:bg-white hover:text-foreground'
+// Shared style for the bottom tab buttons: icon over a label, ≥44px tall.
+const tabButton =
+  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs font-semibold leading-tight transition-colors'
+
+// Spike (ANC-48): `?wheel=plain` shows the buoy without the anchor in the
+// middle, to compare on-device before deciding. Remove once decided.
+const plainWheel =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('wheel') === 'plain'
+
+// Shared style for the "Add an Anchor" call to action on list screens.
+const addAnchorButton =
+  'inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
 
 // Gentle fallback shown in a list slot while skills load / on error / when empty.
 function ListNotice({ children }: { children: React.ReactNode }) {
@@ -124,10 +133,10 @@ export function HomeScreen() {
   const { data: skills = [], isLoading, isError } = useSkills()
   const createSkill = useCreateSkill()
   const updateSkill = useUpdateSkill()
-  // Seed today's invitation with the user + the date, so it's steady through the
-  // day and gently rotates to a new skill tomorrow.
-  const invitationSeed = `${user?.id ?? ''}:${new Date().toDateString()}`
-  const invitation = pickInvitation(skills, invitationSeed)
+  // Seed Today's Skill with the user + the date, so it's steady through the
+  // day and gently rotates to a new one tomorrow.
+  const todaySeed = `${user?.id ?? ''}:${new Date().toDateString()}`
+  const todaysSkill = pickTodaysSkill(skills, todaySeed)
 
   // What's worked, from the user's own reflections. Unrated skills sit at a
   // neutral midpoint so lists stay alphabetical until ratings exist.
@@ -135,6 +144,7 @@ export function HomeScreen() {
   const NEUTRAL_HELP = 3
   const helpScore = (id: string) =>
     usageStats.get(id)?.helpfulnessAvg ?? NEUTRAL_HELP
+  const lastUsed = (id: string) => usageStats.get(id)?.lastUsedAt ?? null
 
   const activeSituation =
     screen.k === 'situation'
@@ -164,7 +174,8 @@ export function HomeScreen() {
     : []
   const visibleMatches = matches.filter((s) => matchesFilters(s, filters))
 
-  const allSorted = [...skills].sort(compareToolkit(helpScore))
+  // My Anchors: most recently added, edited, or used first.
+  const allSorted = [...skills].sort(compareByLatestActivity(lastUsed))
   const visibleAll = allSorted.filter((s) => matchesFilters(s, filters))
 
   return (
@@ -300,9 +311,18 @@ export function HomeScreen() {
             /* My Anchors — the full toolkit */
             <>
               <div className="mt-5">
-                <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
-                  My Anchors
-                </h1>
+                <div className="flex items-center justify-between gap-3">
+                  <h1 className="font-display text-[1.6rem] font-semibold leading-tight text-foreground">
+                    My Anchors
+                  </h1>
+                  <button
+                    onClick={() => setAddOpen(true)}
+                    className={addAnchorButton}
+                  >
+                    <Plus className="size-4" />
+                    Add an Anchor
+                  </button>
+                </div>
                 <p className="mt-1 text-sm text-foreground/50">
                   {visibleAll.length}{' '}
                   {visibleAll.length === 1 ? 'anchor' : 'anchors'}
@@ -322,7 +342,8 @@ export function HomeScreen() {
                   </ListNotice>
                 ) : skills.length === 0 ? (
                   <ListNotice>
-                    Nothing here yet — you can add an anchor with the + below.
+                    Nothing here yet — add your first anchor whenever you're
+                    ready.
                   </ListNotice>
                 ) : visibleAll.length === 0 ? (
                   <ListNotice>
@@ -369,7 +390,14 @@ export function HomeScreen() {
                   </ListNotice>
                 ) : matches.length === 0 ? (
                   <ListNotice>
-                    Nothing here yet — you can add an anchor with the + below.
+                    <p>Nothing here yet.</p>
+                    <button
+                      onClick={() => setAddOpen(true)}
+                      className={`${addAnchorButton} mt-3`}
+                    >
+                      <Plus className="size-4" />
+                      Add an Anchor
+                    </button>
                   </ListNotice>
                 ) : visibleMatches.length === 0 ? (
                   <ListNotice>
@@ -389,7 +417,7 @@ export function HomeScreen() {
           ) : (
             /* Home — greeting section, then the anchor section */
             <>
-              {/* Section 1 — greeting, gentle reminder, a small invitation */}
+              {/* Section 1 — greeting, gentle reminder, Today's Skill */}
               <section className="mt-5 shrink-0">
                 <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
                   {timeGreeting(new Date())}, {greetingName(user)}
@@ -398,19 +426,19 @@ export function HomeScreen() {
                   Your toolkit is here whenever you need it.
                 </p>
 
-                {invitation && (
+                {todaysSkill && (
                   <div className="mt-4 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
                     <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                      A small invitation
+                      Today's Skill
                     </p>
                     <p className="mt-1 font-display text-base font-semibold text-foreground">
-                      {invitation.title}
+                      {todaysSkill.title}
                     </p>
                     <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
-                      {invitation.description}
+                      {todaysSkill.description}
                     </p>
                     <button
-                      onClick={() => push({ k: 'skill', id: invitation.id })}
+                      onClick={() => push({ k: 'skill', id: todaysSkill.id })}
                       className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                     >
                       Try this
@@ -422,16 +450,9 @@ export function HomeScreen() {
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
               <section className="mt-4 flex min-h-0 flex-1 flex-col">
-                {/* Heading cross-fades between the resting + active prompts in
-                    the same slot and the same format. */}
+                {/* The prompt fades in once the wheel opens; at rest the buoy
+                    speaks for itself. The slot keeps its height either way. */}
                 <div className="relative h-9 shrink-0">
-                  <h2
-                    className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
-                      expanded ? 'opacity-0' : 'opacity-100'
-                    }`}
-                  >
-                    Find your anchor
-                  </h2>
                   <h2
                     className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-display text-xl font-semibold text-foreground transition-opacity duration-300 ${
                       expanded ? 'opacity-100' : 'opacity-0'
@@ -447,6 +468,7 @@ export function HomeScreen() {
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute inset-0 m-auto aspect-square max-h-full max-w-[18.5rem]">
                     <SituationWheel
+                      showAnchor={!plainWheel}
                       expanded={expanded}
                       onToggle={() => setExpanded((e) => !e)}
                       onSelect={(key) => {
@@ -468,14 +490,18 @@ export function HomeScreen() {
                       expanded ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
-                    Tap the anchor when you're ready
+                    {plainWheel
+                      ? "Tap the buoy when you're ready"
+                      : "Tap the anchor when you're ready"}
                   </p>
                   <p
                     className={`absolute inset-x-0 top-1/2 mx-auto max-w-[16rem] -translate-y-1/2 text-center text-sm text-foreground/60 transition-opacity duration-300 ${
                       expanded ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    Pick one that would help, or tap the anchor again to go back
+                    {plainWheel
+                      ? 'Pick one that would help, or tap the center to go back'
+                      : 'Pick one that would help, or tap the anchor again to go back'}
                   </p>
                 </div>
               </section>
@@ -485,36 +511,47 @@ export function HomeScreen() {
 
       </div>
 
-      {/* Bottom actions — add an anchor · distress mode · log a use. Always
+      {/* Bottom tabs — My Anchors · I'm in distress · Reflect. Always
           reachable, floating over the content so they stay in reach on long,
-          scrolling lists. The distress button is larger and red so it reads as the
-          one-tap panic target. The wrapper ignores pointer events so the gaps
-          stay click-through; each button re-enables them. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 mx-auto h-14 w-full max-w-md px-5">
-        <div className="relative h-full w-full">
+          scrolling lists. Distress sits in the middle in coral so it reads as
+          the one-tap target for a hard moment. */}
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5"
+      >
+        <div className="grid grid-cols-3 gap-1.5 rounded-3xl border border-white/60 bg-white/70 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
           <button
-            onClick={() => setAddOpen(true)}
-            aria-label="Add an anchor"
-            className={`${bottomButton} pointer-events-auto absolute left-1/4 top-0 -translate-x-1/2`}
+            onClick={() => {
+              setFilters(emptyFilters())
+              navTop({ k: 'all-skills' })
+            }}
+            aria-current={screen.k === 'all-skills' ? 'page' : undefined}
+            className={`${tabButton} ${
+              screen.k === 'all-skills'
+                ? 'bg-white text-foreground'
+                : 'text-foreground/65 hover:bg-white/80 hover:text-foreground'
+            }`}
           >
-            <Plus className="size-6" strokeWidth={1.75} />
+            <Anchor className="size-6" strokeWidth={1.75} />
+            My Anchors
           </button>
           <button
             onClick={() => navTop({ k: 'crisis' })}
-            aria-label="I'm in distress"
-            className="pointer-events-auto absolute bottom-0 left-1/2 flex size-[4.5rem] -translate-x-1/2 items-center justify-center rounded-full border border-white/60 bg-[hsl(8,76%,90%)]/70 text-[hsl(8,58%,48%)] shadow-[0_8px_24px_-8px_hsl(8_60%_50%_/_0.4)] backdrop-blur-md transition-colors hover:bg-[hsl(8,76%,88%)]/85 hover:text-[hsl(8,58%,40%)]"
+            aria-current={screen.k === 'crisis' ? 'page' : undefined}
+            className={`${tabButton} bg-[hsl(10,76%,93%)] text-[hsl(8,52%,44%)] hover:bg-[hsl(10,76%,89%)] hover:text-[hsl(8,58%,38%)]`}
           >
-            <Phone className="size-8" strokeWidth={1.9} />
+            <LifeBuoy className="size-6" strokeWidth={1.9} />
+            I'm in distress
           </button>
           <button
             onClick={() => setLogOpen(true)}
-            aria-label="Log an anchor you used"
-            className={`${bottomButton} pointer-events-auto absolute left-3/4 top-0 -translate-x-1/2`}
+            className={`${tabButton} text-foreground/65 hover:bg-white/80 hover:text-foreground`}
           >
-            <NotebookPen className="size-6" strokeWidth={1.75} />
+            <Brain className="size-6" strokeWidth={1.75} />
+            Reflect
           </button>
         </div>
-      </div>
+      </nav>
 
       <MenuDrawer
         open={menuOpen}
@@ -528,7 +565,13 @@ export function HomeScreen() {
         }}
         onAllLogs={() => navTop({ k: 'all-logs' })}
       />
-      <LogSheet open={logOpen} onClose={() => setLogOpen(false)} skills={skills} />
+      <LogSheet
+        open={logOpen}
+        onClose={() => setLogOpen(false)}
+        skills={skills}
+        onViewReflections={() => navTop({ k: 'all-logs' })}
+        onAddNew={() => setAddOpen(true)}
+      />
       <SkillSheet
         open={addOpen || editSkill !== null}
         onClose={() => {

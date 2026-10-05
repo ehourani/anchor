@@ -19,16 +19,25 @@ import { SkillSheet } from '@/features/skills/SkillSheet'
 import type { NewSkillDraft } from '@/features/skills/skills'
 import { CrisisSetupSheet } from '@/features/crisis/CrisisSetupSheet'
 
-// First-run setup, one calm screen at a time: welcome → name → add a few anchors
-// → confirm the distress set → done. Completing it writes a flag to user_metadata
+// First-run setup, one calm screen at a time: welcome → name → what is Anchor
+// → add a few anchors → confirm the distress set → done. Completing it writes a flag to user_metadata
 // so it never shows again. Everything is skippable — never a wall.
-const STEP_COUNT = 5
+const STEP_COUNT = 6
 
-// Large, centered brand mark for the welcome + name steps.
+// Large, centered brand mark for the welcome, name, and explainer steps.
 function AnchorLogo() {
   return (
     <span className="mx-auto flex size-24 items-center justify-center rounded-3xl bg-primary/15 text-primary">
       <Anchor className="size-12" strokeWidth={1.75} />
+    </span>
+  )
+}
+
+// The coral life buoy used for distress everywhere else (wheel, tab, menu).
+function DistressMark() {
+  return (
+    <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
+      <LifeBuoy className="size-7" strokeWidth={1.9} />
     </span>
   )
 }
@@ -133,26 +142,70 @@ export function OnboardingFlow() {
               <p className="mt-2 text-sm text-foreground/60">
                 Just for a warm hello when you open the app.
               </p>
-              <div className="mt-5 flex gap-2.5 text-left">
+              <div className="mt-5 flex flex-col gap-2.5 text-left">
                 <input
                   value={first}
                   onChange={(e) => setFirst(e.target.value)}
                   placeholder="First name"
+                  aria-label="First name"
                   autoComplete="given-name"
-                  className={`${inputClass} flex-1`}
+                  className={inputClass}
                 />
                 <input
                   value={last}
                   onChange={(e) => setLast(e.target.value)}
                   placeholder="Last name"
+                  aria-label="Last name"
                   autoComplete="family-name"
-                  className={`${inputClass} flex-1`}
+                  className={inputClass}
                 />
               </div>
             </div>
           )}
 
           {step === 2 && (
+            <div className="text-center">
+              <AnchorLogo />
+              <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
+                What is Anchor?
+              </h1>
+              <div className="mt-5 space-y-3 text-left">
+                <div className="flex gap-3.5 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <Anchor className="size-5" />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      Anchors are your coping skills
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-foreground/65">
+                      When you're feeling activated, an anchor is something small
+                      and healthy you can reach for to help you through it. Over
+                      time, the hope is to lean on your anchors a little more, and
+                      on ED behaviors a little less.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3.5 rounded-2xl border border-white/60 bg-white/55 p-4 backdrop-blur-md">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]">
+                    <LifeBuoy className="size-5" />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      Distress anchors are for the hardest moments
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-foreground/65">
+                      Distress is when urges or feelings get really loud. Your
+                      distress anchors are a short list you choose ahead of time,
+                      so they're one tap away. No searching, no deciding.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="flex min-h-0 flex-1 flex-col">
               <h1 className="shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
                 Add a few anchors
@@ -190,20 +243,23 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="flex min-h-0 flex-1 flex-col">
-              <h1 className="shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
-                Set up your distress anchors
+              <DistressMark />
+              <h1 className="mt-4 shrink-0 font-display text-2xl font-semibold leading-tight text-foreground">
+                Your distress anchors
               </h1>
               <p className="mt-2 shrink-0 text-sm leading-relaxed text-foreground/60">
-                These are the ones you'll reach for first in a hard moment — one tap
-                away, no searching. We've started you off with a few; reorder or
-                change them to fit you.
+                Think about what truly helps you when things get really hard. These
+                are the anchors you'll see first when you tap “I'm in distress.” We've
+                started you with a few. Change them or put them in the order that
+                feels right to you.
               </p>
               <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
                 {crisisSkills.length === 0 ? (
                   <p className="rounded-2xl border border-white/60 bg-white/55 p-4 text-center text-sm text-foreground/55 backdrop-blur-md">
-                    No distress anchors yet — choose a few below.
+                    No distress anchors yet, and that's okay. You can choose a few
+                    below, now or whenever you're ready.
                   </p>
                 ) : (
                   crisisSkills.map((s, i) => (
@@ -231,7 +287,7 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="text-center">
               <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                 <Check className="size-8" />

@@ -11,15 +11,15 @@ export function hashSeed(seed: string): number {
   return h >>> 0
 }
 
-// A softly-suggested skill to try today. Rotates gently: one pick per day, tied
-// to the user (the same person sees the same invitation all day, a different one
-// tomorrow). Prefers low-effort skills so the suggestion always feels doable,
-// and falls back to the whole toolkit if none are tagged low.
-export function pickInvitation(skills: Skill[], seed: string): Skill | null {
-  if (skills.length === 0) return null
-  const lowEffort = skills.filter((s) =>
-    s.tags.some((t) => t.category === 'effort' && t.label === 'low'),
+// Today's Skill: one Build balance (`life-building`) anchor to practice
+// proactively — something for a steady day, not a hard moment. One pick per
+// day, tied to the user (the same person sees the same skill all day, a
+// different one tomorrow). Null when they have no Build balance anchors, so the
+// card simply doesn't show.
+export function pickTodaysSkill(skills: Skill[], seed: string): Skill | null {
+  const pool = skills.filter((s) =>
+    s.tags.some((t) => t.category === 'situation' && t.label === 'life-building'),
   )
-  const pool = lowEffort.length > 0 ? lowEffort : skills
+  if (pool.length === 0) return null
   return pool[hashSeed(seed) % pool.length]
 }

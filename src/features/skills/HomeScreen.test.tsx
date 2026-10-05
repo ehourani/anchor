@@ -30,6 +30,12 @@ vi.mock('@/features/history/useUsageLogs', async (importOriginal) => ({
 vi.mock('@/features/logging/useUsageLogger', () => ({
   useUsageLogger: () => logger,
 }))
+// The distress-set write itself; the optimistic hook around it stays real.
+const writes = vi.hoisted(() => ({ setCrisisPriority: vi.fn() }))
+vi.mock('./skills', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./skills')>()),
+  setCrisisPriority: writes.setCrisisPriority,
+}))
 
 const grounding = makeSkill({
   id: 'grounding',
@@ -63,14 +69,22 @@ function renderHome() {
   )
 }
 
-// The bottom-bar distress button (the menu drawer has one too).
-function bottomDistressButton() {
+// A bottom tab by name (the menu drawer has same-named items too).
+function tab(name: string) {
+  return within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name })
+}
+
+// A button on the page itself, not in the (always-mounted) menu drawer or a
+// sheet, which may carry a same-named item.
+function pageButton(name: string) {
   const button = screen
-    .getAllByRole('button', { name: "I'm in distress" })
+    .getAllByRole('button', { name })
     .find((b) => !b.closest('[role="dialog"]'))
-  if (!button) throw new Error('No bottom-bar distress button')
+  if (!button) throw new Error(`No on-page button named ${name}`)
   return button
 }
+
+const bottomDistressButton = () => pageButton("I'm in distress")
 
 // Anchor lists (situation lists and distress mode) render each card title as
 // an h3, in order. The always-mounted sheets use plain text, so this only sees
@@ -93,6 +107,7 @@ beforeEach(() => {
   state.skills = [walk, coldWater, boxBreathing, grounding]
   logger.startLog.mockClear()
   logger.saveReflection.mockClear()
+  writes.setCrisisPriority.mockReset().mockResolvedValue(undefined)
 })
 
 describe('find → open → log', () => {
@@ -164,5 +179,170 @@ describe('distress mode', () => {
     expect(screen.queryAllByRole('heading', { level: 3 })).toHaveLength(0)
     expect(screen.getByRole('button', { name: 'Choose your anchors' })).toBeInTheDocument()
     expectSupportLinks()
+  })
+})
+
+describe('My Anchors', () => {
+  it('is one tap from home, newest activity first, with an Add an Anchor button', async () => {
+    state.skills = [
+      { ...boxBreathing, createdAt: '2026-03-01T00:00:00Z', updatedAt: '2026-03-01T00:00:00Z' },
+      { ...walk, createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z' },
+      { ...grounding, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-01T00:00:00Z' },
+    ]
+    const user = userEvent.setup()
+    renderHome()
+
+    await user.click(tab('My Anchors'))
+
+    expect(screen.getByRole('heading', { level: 1, name: 'My Anchors' })).toBeInTheDocument()
+    expect(cardTitles()).toEqual(['Gentle walk', 'Grounding 5-4-3-2-1', 'Box breathing'])
+
+    await user.click(pageButton('Add an Anchor'))
+    const sheet = screen.getByRole('dialog', { name: 'Add an Anchor' })
+    expect(within(sheet).getByRole('heading', { name: 'Add an Anchor' })).toBeInTheDocument()
+  })
+
+  it('shows the new quick filters, in order', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('My Anchors'))
+
+    const quick = screen
+      .getAllByRole('button', { pressed: false })
+      .map((b) => b.textContent)
+      .filter((t) => ['Low Effort', 'Slow the spiral', 'Touch', 'DBT'].includes(t ?? ''))
+    expect(quick.slice(0, 4)).toEqual(['Low Effort', 'Slow the spiral', 'Touch', 'DBT'])
+  })
+
+  it('toggles distress-set membership from the card; adding appends to the end', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('My Anchors'))
+
+    const inSet = screen.getByRole('button', { name: 'Remove Cold water from your distress set' })
+    expect(inSet).toHaveAttribute('aria-pressed', 'true')
+
+    await user.click(screen.getByRole('button', { name: 'Add Box breathing to your distress set' }))
+    expect(writes.setCrisisPriority).toHaveBeenCalledWith('box-breathing', 3)
+
+    await user.click(inSet)
+    expect(writes.setCrisisPriority).toHaveBeenCalledWith('cold-water', null)
+  })
+
+  it('has no favorites anywhere', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('My Anchors'))
+    expect(screen.queryByLabelText(/favorite/i)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('heading', { level: 3, name: 'Box breathing' }))
+    expect(screen.queryByLabelText(/favorite/i)).not.toBeInTheDocument()
+
+    await user.click(bottomDistressButton())
+    expect(screen.queryByLabelText(/favorite/i)).not.toBeInTheDocument()
+  })
+})
+
+describe("Today's Skill", () => {
+  it('suggests only a Build balance anchor', () => {
+    renderHome()
+    const card = screen.getByText("Today's Skill").parentElement!
+    // Gentle walk is the only Build balance anchor in the fixtures.
+    expect(within(card).getByText('Gentle walk')).toBeInTheDocument()
+  })
+
+  it('is hidden when there are no Build balance anchors', () => {
+    state.skills = [grounding, coldWater, boxBreathing]
+    renderHome()
+    expect(screen.queryByText("Today's Skill")).not.toBeInTheDocument()
+  })
+})
+
+describe('Reflect', () => {
+  it('searches anchors by title and offers to add one when nothing matches', async () => {
+    const user = userEvent.setup()
+    renderHome()
+
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+    const search = within(sheet).getByRole('searchbox', { name: 'Search your anchors' })
+
+    await user.type(search, 'BREATH')
+    const options = () =>
+      within(sheet)
+        .getAllByRole('button')
+        .map((b) => b.textContent)
+        .filter((t) => state.skills.some((s) => s.title === t))
+    expect(options()).toEqual(['Box breathing'])
+
+    await user.clear(search)
+    await user.type(search, 'zzz')
+    expect(options()).toEqual([])
+    await user.click(within(sheet).getByRole('button', { name: 'Add a new anchor' }))
+    expect(screen.getByRole('dialog', { name: 'Add an Anchor' })).toBeInTheDocument()
+  })
+
+  it('clears the search', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+    const search = within(sheet).getByRole('searchbox', { name: 'Search your anchors' })
+
+    await user.type(search, 'walk')
+    await user.click(within(sheet).getByRole('button', { name: 'Clear search' }))
+    expect(search).toHaveValue('')
+  })
+
+  it('reaches past reflections from inside the sheet', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+
+    await user.click(within(sheet).getByRole('button', { name: 'See past reflections' }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Reflections' })).toBeInTheDocument()
+  })
+})
+
+describe('Add an Anchor sheet', () => {
+  it('keeps Senses and Approach in a collapsed optional section', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('My Anchors'))
+    await user.click(pageButton('Add an Anchor'))
+    const sheet = screen.getByRole('dialog', { name: 'Add an Anchor' })
+
+    const toggle = within(sheet).getByRole('button', { name: /Additional info/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(within(sheet).queryByText('Senses')).not.toBeInTheDocument()
+    expect(within(sheet).getByText('Effort')).toBeInTheDocument()
+
+    await user.click(toggle)
+    expect(within(sheet).getByText('Senses')).toBeInTheDocument()
+    expect(within(sheet).getByText('Approach')).toBeInTheDocument()
+  })
+
+  it('opens the optional section when editing an anchor that uses it', async () => {
+    state.skills = [
+      ...state.skills,
+      makeSkill({
+        id: 'music',
+        title: 'Mindful music',
+        tags: [tag('situation', 'distraction'), tag('effort', 'low'), tag('senses', 'sound')],
+      }),
+    ]
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('My Anchors'))
+    await user.click(screen.getByRole('heading', { level: 3, name: 'Mindful music' }))
+    await user.click(screen.getByRole('button', { name: 'Edit anchor' }))
+
+    const sheet = screen.getByRole('dialog', { name: 'Edit an anchor' })
+    expect(within(sheet).getByRole('button', { name: /Additional info/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(within(sheet).getByRole('button', { name: 'Sound', pressed: true })).toBeInTheDocument()
   })
 })

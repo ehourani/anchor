@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, ChevronDown, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import type { Skill, Tag, TagCategory } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
 import { categoryStyles } from './TagChip'
-import { tagVocabulary } from './tagVocabulary'
+import { tagVocabulary, type CategoryMeta } from './tagVocabulary'
 
 type Selection = Record<TagCategory, string[]>
 
@@ -22,6 +22,12 @@ function emptySelection(defaultSituation: string | null): Selection {
 // An existing skill's tags, grouped back into the picker's selection shape.
 // Skill.tags carry the slug as their label, which is exactly what the option
 // buttons key on, so the grouping lines up without any remapping.
+// Senses and approach are optional extras, tucked behind a collapsed section
+// so the required fields stay front and center.
+const isOptionalCategory = (c: CategoryMeta) => !c.required
+const hasOptionalTags = (skill: Skill | null) =>
+  !!skill?.tags.some((t) => t.category === 'senses' || t.category === 'modality')
+
 function selectionFromSkill(skill: Skill): Selection {
   const sel = emptySelection(null)
   for (const t of skill.tags) sel[t.category] = [...sel[t.category], t.label]
@@ -51,6 +57,7 @@ export function SkillSheet({
   const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   // Fresh form each open: pre-fill from the skill when editing, otherwise blank
   // with the situation we came from. Keyed on the skill id (not the object) so a
@@ -63,6 +70,8 @@ export function SkillSheet({
     setDone(false)
     setSaving(false)
     setError(null)
+    // Open the extras when editing an anchor that already uses them.
+    setMoreOpen(hasOptionalTags(skill))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, skill?.id, defaultSituation])
 
@@ -115,6 +124,40 @@ export function SkillSheet({
       setSaving(false)
     }
   }
+
+  // One tag category: its label (with "pick one" for effort) and icon chips.
+  // Optional categories render inside the "(optional)" section above.
+  const renderCategory = (cat: CategoryMeta) => (
+    <div key={cat.category}>
+      <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+        {cat.label}{' '}
+        {!cat.multi && (
+          <span className="normal-case text-foreground/35">(pick one)</span>
+        )}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {cat.options.map((opt) => {
+          const sel = selected[cat.category].includes(opt.slug)
+          return (
+            <button
+              key={opt.slug}
+              onClick={() => toggle(cat.category, opt.slug, cat.multi)}
+              aria-pressed={sel}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors',
+                sel
+                  ? cn(categoryStyles[cat.category], 'border-transparent')
+                  : 'border-border bg-white/55 text-foreground/55 hover:bg-white/80',
+              )}
+            >
+              <opt.Icon className="size-4" aria-hidden="true" />
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -204,39 +247,34 @@ export function SkillSheet({
                 />
               </div>
 
-              {tagVocabulary.map((cat) => (
-                <div key={cat.category}>
-                  <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                    {cat.label}{' '}
-                    <span className="normal-case text-foreground/35">
-                      {cat.required
-                        ? cat.multi
-                          ? ''
-                          : '(pick one)'
-                        : '(optional)'}
-                    </span>
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {cat.options.map((opt) => {
-                      const sel = selected[cat.category].includes(opt.slug)
-                      return (
-                        <button
-                          key={opt.slug}
-                          onClick={() => toggle(cat.category, opt.slug, cat.multi)}
-                          className={cn(
-                            'rounded-full border px-3 py-1 text-sm font-medium transition-colors',
-                            sel
-                              ? cn(categoryStyles[cat.category], 'border-transparent')
-                              : 'border-border bg-white/55 text-foreground/55 hover:bg-white/80',
-                          )}
-                        >
-                          {opt.label}
-                        </button>
-                      )
-                    })}
+              {tagVocabulary
+                .filter((cat) => !isOptionalCategory(cat))
+                .map(renderCategory)}
+
+              <div className="rounded-2xl border border-border/70 bg-white/40">
+                <button
+                  onClick={() => setMoreOpen((o) => !o)}
+                  aria-expanded={moreOpen}
+                  aria-controls="skill-sheet-extras"
+                  className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-foreground/70"
+                >
+                  <span>
+                    Additional info{' '}
+                    <span className="font-normal text-foreground/40">(optional)</span>
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      'size-4 shrink-0 text-foreground/45 transition-transform duration-200',
+                      moreOpen && 'rotate-180',
+                    )}
+                  />
+                </button>
+                {moreOpen && (
+                  <div id="skill-sheet-extras" className="space-y-5 px-4 pb-4">
+                    {tagVocabulary.filter(isOptionalCategory).map(renderCategory)}
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
 
             <div className="shrink-0 border-t border-border/60 px-6 pb-6 pt-3">

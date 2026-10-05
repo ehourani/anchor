@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { ChevronRight, Heart, Pencil } from 'lucide-react'
+import { ChevronRight, Pencil } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import type { Skill } from '@/features/skills/sampleSkills'
-import { useToggleFavorite } from '@/features/skills/useToggleFavorite'
 import { SupportLinks } from './SupportLinks'
 import { CrisisSetupSheet } from './CrisisSetupSheet'
 
@@ -19,7 +17,6 @@ export function CrisisScreen({
   onOpenSkill: (id: string) => void
 }) {
   const [setupOpen, setSetupOpen] = useState(false)
-  const toggleFavorite = useToggleFavorite()
 
   const crisisSkills = skills
     .filter((s) => s.crisisPriority != null)
@@ -74,28 +71,6 @@ export function CrisisScreen({
                   {s.description}
                 </p>
               </div>
-              <span
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggleFavorite.mutate({
-                    skillId: s.id,
-                    isFavorite: !s.isFavorite,
-                  })
-                }}
-                role="button"
-                aria-pressed={s.isFavorite}
-                aria-label={
-                  s.isFavorite ? 'Remove from favorites' : 'Add to favorites'
-                }
-                className="shrink-0 rounded-full p-1.5 text-foreground/30 transition-colors hover:bg-black/5 hover:text-red-400"
-              >
-                <Heart
-                  className={cn(
-                    'size-5',
-                    s.isFavorite && 'fill-red-500 text-red-500',
-                  )}
-                />
-              </span>
               <ChevronRight className="size-5 shrink-0 text-muted-foreground/50" />
             </button>
           ))

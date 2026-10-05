@@ -39,6 +39,7 @@ export function useUpdateSkill() {
                 ...s,
                 title: draft.title.trim(),
                 description: draft.description.trim(),
+                updatedAt: new Date().toISOString(),
                 tags: draft.tags,
               }
             : s,

@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronRight, Heart, LifeBuoy, Pencil, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, LifeBuoy, Pencil, Trash2 } from 'lucide-react'
 
 import { type Helpfulness } from '@/features/logging/logging'
 import { useUsageLogger } from '@/features/logging/useUsageLogger'
 import { LogReflection } from '@/features/logging/LogReflection'
 import { useUsageLogs } from '@/features/history/useUsageLogs'
 import { TagChip } from './TagChip'
-import { useToggleFavorite } from './useToggleFavorite'
 import { useDeleteSkill } from './useDeleteSkill'
 import { useSkills } from './useSkills'
 import {
@@ -43,7 +42,6 @@ export function SkillDetail({
   const [note, setNote] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const { startLog, saveReflection: persistReflection } = useUsageLogger()
-  const toggleFavorite = useToggleFavorite()
   const deleteSkill = useDeleteSkill()
   const setCrisis = useSetCrisisMembership()
   // The full toolkit, to place a newly-added skill at the end of the crisis set.
@@ -118,27 +116,6 @@ export function SkillDetail({
               className="rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-foreground"
             >
               <Pencil className="size-5" />
-            </button>
-            <button
-              onClick={() =>
-                toggleFavorite.mutate({
-                  skillId: skill.id,
-                  isFavorite: !skill.isFavorite,
-                })
-              }
-              aria-pressed={skill.isFavorite}
-              aria-label={
-                skill.isFavorite ? 'Remove from favorites' : 'Add to favorites'
-              }
-              className="rounded-full p-2 text-foreground/35 transition-colors hover:bg-white/60 hover:text-red-400"
-            >
-              <Heart
-                className={
-                  skill.isFavorite
-                    ? 'size-6 fill-red-500 text-red-500'
-                    : 'size-6'
-                }
-              />
             </button>
           </div>
         </div>

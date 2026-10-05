@@ -7,7 +7,7 @@ import { skillsQueryKey } from './useSkills'
 
 // Adds or removes a skill from the crisis set, optimistically. Membership is a
 // non-null crisis_priority; we append new members after the current highest
-// rank, and clear the priority to remove. Mirrors useToggleFavorite.
+// rank, and clear the priority to remove. Optimistic, like the other skill writes.
 export function useSetCrisisMembership() {
   const { user } = useAuth()
   const queryClient = useQueryClient()

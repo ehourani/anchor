@@ -10,12 +10,14 @@ export type NewSkillDraft = {
 // Builds a local Skill object — used for the optimistic entry while a real
 // insert is in flight, so the new skill appears instantly.
 export function createSkill(draft: NewSkillDraft): Skill {
+  const now = new Date().toISOString()
   return {
     id: crypto.randomUUID(),
     title: draft.title.trim(),
     description: draft.description.trim(),
     crisisPriority: null,
-    isFavorite: false,
+    createdAt: now,
+    updatedAt: now,
     tags: draft.tags,
   }
 }
@@ -123,19 +125,6 @@ export async function updateSkill(
       .insert(toAdd.map((tag_id) => ({ skill_id: skillId, tag_id })))
     if (error) throw error
   }
-}
-
-// Flip a skill's favorite flag. RLS scopes the update to the owner; we don't
-// pass user_id since the WHERE on id plus the policy is enough.
-export async function setFavorite(
-  skillId: string,
-  isFavorite: boolean,
-): Promise<void> {
-  const { error } = await supabase
-    .from('skills')
-    .update({ is_favorite: isFavorite })
-    .eq('id', skillId)
-  if (error) throw error
 }
 
 // Delete a skill. Its skill_tags and usage_logs cascade-delete in the DB (see

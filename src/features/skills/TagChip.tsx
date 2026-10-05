@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import type { TagCategory } from './sampleSkills'
-import { tagLabel } from './tagVocabulary'
+import { tagIcon, tagLabel } from './tagVocabulary'
 
 // One soft pastel hue per taxonomy category, so tags read at a glance without
 // shouting. Tone deliberately gentle — these are quiet labels, not alerts.
@@ -13,7 +13,7 @@ export const categoryStyles: Record<TagCategory, string> = {
 }
 
 // `label` carries the tag slug (that's what Skill.tags hold); we render the
-// human-facing label for it.
+// human-facing label for it, with its icon.
 export function TagChip({
   category,
   label,
@@ -21,13 +21,15 @@ export function TagChip({
   category: TagCategory
   label: string
 }) {
+  const Icon = tagIcon(category, label)
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium',
         categoryStyles[category],
       )}
     >
+      {Icon && <Icon className="size-3.5" aria-hidden="true" />}
       {tagLabel(category, label)}
     </span>
   )
