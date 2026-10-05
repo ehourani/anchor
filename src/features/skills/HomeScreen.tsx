@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleUser,
+  House,
   LifeBuoy,
   LogOut,
   Menu,
@@ -81,6 +82,13 @@ function screenKey(s: Screen): string {
 const headerIconButton =
   'flex size-9 items-center justify-center rounded-full bg-white/55 text-foreground/70 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground'
 
+// Experiment: `?nav=5` swaps the 3-item nav for Home · My Anchors · I'm in
+// distress · Reflect · Account, with Home marked as the current screen.
+// Remove whichever variant loses.
+const fiveItemNav =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('nav') === '5'
+
 // One item in the bottom nav: icon over a label, ≥44px tall. No filled
 // backgrounds, so nothing reads as "selected" except the screen you're on,
 // which gets a small dot under its label.
@@ -101,7 +109,9 @@ function NavItem({
     <button
       onClick={onClick}
       aria-current={current ? 'page' : undefined}
-      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 pb-1.5 pt-2 text-xs font-semibold leading-tight transition-colors hover:bg-white/60 ${
+      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 pb-1.5 pt-2 font-semibold leading-tight transition-colors hover:bg-white/60 ${
+        fiveItemNav ? 'text-[0.68rem]' : 'text-xs'
+      } ${
         tone === 'distress'
           ? 'text-[hsl(8,52%,46%)] hover:text-[hsl(8,58%,38%)]'
           : current
@@ -537,7 +547,17 @@ export function HomeScreen() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-5"
       >
-        <div className="grid grid-cols-3 gap-1 rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
+        <div
+          className={`grid ${fiveItemNav ? 'grid-cols-5 gap-0.5' : 'grid-cols-3 gap-1'} rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md`}
+        >
+          {fiveItemNav && (
+            <NavItem
+              icon={House}
+              label="Home"
+              current={screen.k === 'home'}
+              onClick={goHome}
+            />
+          )}
           <NavItem
             icon={Anchor}
             label="My Anchors"
@@ -560,6 +580,14 @@ export function HomeScreen() {
             current={false}
             onClick={() => setLogOpen(true)}
           />
+          {fiveItemNav && (
+            <NavItem
+              icon={CircleUser}
+              label="Account"
+              current={screen.k === 'account'}
+              onClick={() => navTop({ k: 'account' })}
+            />
+          )}
         </div>
       </nav>
 
