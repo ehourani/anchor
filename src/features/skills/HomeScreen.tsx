@@ -559,7 +559,7 @@ export function HomeScreen() {
         <div
           className={
             fiveItemNav
-              ? 'mx-auto grid w-full max-w-md grid-cols-5 gap-0.5 px-2 py-1'
+              ? 'grid w-full grid-cols-5 py-1'
               : 'grid grid-cols-3 gap-1 rounded-3xl border border-white/60 bg-white/75 p-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md'
           }
         >
