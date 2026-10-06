@@ -454,19 +454,36 @@ export function HomeScreen() {
                     Your toolkit is here whenever you need it.
                   </p>
 
-                  {todaysSkill && (
-                    <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md">
+                  {/* While anchors load, an invisible stand-in holds the card's
+                      space so the buoy doesn't drop once it arrives. */}
+                  {(todaysSkill || isLoading) && (
+                    <div
+                      aria-hidden={!todaysSkill}
+                      className={`mt-3 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md ${
+                        todaysSkill ? '' : 'invisible'
+                      }`}
+                    >
                       <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
                         Today's Skill to practice
                       </p>
                       <p className="mt-1 font-display text-base font-semibold text-foreground">
-                        {todaysSkill.title}
+                        {todaysSkill?.title ?? '\u00a0'}
                       </p>
                       <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
-                        {todaysSkill.description}
+                        {todaysSkill ? (
+                          todaysSkill.description
+                        ) : (
+                          <>
+                            &nbsp;
+                            <br />
+                            &nbsp;
+                          </>
+                        )}
                       </p>
                       <button
-                        onClick={() => push({ k: 'skill', id: todaysSkill.id })}
+                        onClick={() =>
+                          todaysSkill && push({ k: 'skill', id: todaysSkill.id })
+                        }
                         className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
                         Try this
@@ -476,7 +493,7 @@ export function HomeScreen() {
                   )}
                 </div>
                 {tourStep !== null && (
-                  <div className="col-start-1 row-start-1 self-start">
+                  <div className="col-start-1 row-start-1 self-end">
                     <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
                   </div>
                 )}
