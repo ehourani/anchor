@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Anchor,
   ChevronLeft,
@@ -21,6 +21,8 @@ import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
 import { AccountScreen } from '@/features/account/AccountScreen'
 import { LegalScreen, type LegalDoc } from '@/features/legal/LegalScreen'
+import { completeTour, needsTour } from '@/features/auth/auth'
+import { HomeTour, tourSteps } from '@/features/onboarding/HomeTour'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
@@ -84,17 +86,20 @@ function NavItem({
   label,
   current,
   tone = 'neutral',
+  tourId,
   onClick,
 }: {
   icon: typeof Anchor
   label: string
   current: boolean
   tone?: 'neutral' | 'distress'
+  tourId?: string
   onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
+      data-tour={tourId}
       aria-current={current ? 'page' : undefined}
       className={`flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
         // No hover styles: on touch screens hover "sticks" after a tap, which
@@ -137,6 +142,13 @@ export function HomeScreen() {
   const [addOpen, setAddOpen] = useState(false)
   const [editSkill, setEditSkill] = useState<Skill | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters())
+  // The one-time home tour, queued by onboarding. In dev, `?tour` replays it.
+  const [tourStep, setTourStep] = useState<number | null>(() =>
+    needsTour(user) ||
+    (import.meta.env.DEV && new URLSearchParams(window.location.search).has('tour'))
+      ? 0
+      : null,
+  )
 
   const screen = stack[stack.length - 1]
   // The home screen is pinned to the viewport so the buoy area can flex-shrink
@@ -151,6 +163,27 @@ export function HomeScreen() {
   }
   // Bottom-nav destinations reset to one level deep, so Back returns home.
   const navTop = (s: Screen) => setStack([{ k: 'home' }, s])
+
+  // Finished, skipped, or left: either way it's seen, and it never comes back.
+  const endTour = () => {
+    setTourStep(null)
+    setExpanded(false)
+    completeTour().catch((e) => console.error('Failed to save tour state:', e))
+  }
+  const nextTourStep = () => {
+    if (tourStep === null) return
+    const n = tourStep + 1
+    if (n >= tourSteps.length) return endTour()
+    if (tourSteps[n].wheelOpen) setExpanded(true)
+    setTourStep(n)
+  }
+  // The tour never holds anyone on home: going anywhere (In Distress, a
+  // category, Reflect…) ends it and they land where they tapped.
+  const leftHome = screen.k !== 'home' || logOpen
+  useEffect(() => {
+    if (tourStep !== null && leftHome) endTour()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leftHome])
 
   // Live, per-user skills from Supabase.
   const { data: skills = [], isLoading, isError } = useSkills()
@@ -392,8 +425,14 @@ export function HomeScreen() {
           ) : (
             /* Home — greeting section, then the anchor section */
             <>
-              {/* Section 1 — greeting, gentle reminder, Today's Skill */}
-              <section className="mt-3 shrink-0">
+              {/* Section 1 — greeting, gentle reminder, Today's Skill. It
+                  steps back (layout kept) while the tour's cards need the room. */}
+              <section
+                aria-hidden={tourStep !== null}
+                className={`mt-3 shrink-0 transition-opacity duration-300 motion-reduce:transition-none ${
+                  tourStep !== null ? 'pointer-events-none opacity-0' : ''
+                }`}
+              >
                 <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
                   {timeGreeting(new Date())}, {greetingName(user)}
                 </h1>
@@ -435,7 +474,12 @@ export function HomeScreen() {
                 <div className="relative aspect-square w-[min(17rem,100cqw,calc(100cqh-3.5rem))] shrink-0">
                   <SituationWheel
                     expanded={expanded}
-                    onToggle={() => setExpanded((e) => !e)}
+                    focusKey={tourStep !== null ? tourSteps[tourStep].focus ?? null : null}
+                    onToggle={() => {
+                      // Tapping the anchor on the tour's first step is its "Next".
+                      if (tourStep === 0 && !expanded) return nextTourStep()
+                      setExpanded((e) => !e)
+                    }}
                     onSelect={(key) => {
                       // "In distress" goes straight to distress mode — no filtering.
                       if (key === 'crisis') {
@@ -480,6 +524,7 @@ export function HomeScreen() {
           the remaining width and space their items evenly. */}
       <nav
         aria-label="Main"
+        data-tour="nav"
         className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-lg px-2"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] rounded-3xl border border-white/60 bg-white/75 px-1 py-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
@@ -504,6 +549,7 @@ export function HomeScreen() {
             icon={LifeBuoy}
             label="In Distress"
             tone="distress"
+            tourId="nav-distress"
             current={screen.k === 'crisis'}
             onClick={() => navTop({ k: 'crisis' })}
           />
@@ -511,6 +557,7 @@ export function HomeScreen() {
             <NavItem
               icon={NotebookPen}
               label="Reflect"
+              tourId="nav-reflect"
               current={false}
               onClick={() => setLogOpen(true)}
             />
@@ -523,6 +570,10 @@ export function HomeScreen() {
           </div>
         </div>
       </nav>
+
+      {tourStep !== null && isHome && !logOpen && (
+        <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
+      )}
 
       <LogSheet
         open={logOpen}

@@ -47,15 +47,20 @@ export function SituationWheel({
   expanded,
   onToggle,
   onSelect,
+  focusKey = null,
 }: {
   expanded: boolean
   onToggle: () => void
   onSelect: (key: string) => void
+  // The guided tour spotlights one segment by fading the others back.
+  focusKey?: string | null
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
+  const faded = (key: string) => focusKey !== null && focusKey !== key
 
   return (
     <div
+      data-tour="wheel"
       className={`relative size-full [container-type:inline-size] ${
         expanded ? '' : 'animate-breathe'
       }`}
@@ -77,7 +82,8 @@ export function SituationWheel({
               fill={fill}
               stroke="none"
               aria-label={expanded ? s.label : undefined}
-              className="cursor-pointer transition-[fill] duration-300"
+              opacity={faded(s.key) ? 0.35 : 1}
+              className="cursor-pointer transition-[fill,opacity] duration-300 motion-reduce:transition-none"
               onMouseEnter={expanded ? () => setHovered(s.key) : undefined}
               onMouseLeave={
                 expanded
@@ -113,6 +119,7 @@ export function SituationWheel({
           r={r - 2}
           fill="transparent"
           aria-label={expanded ? 'Close the options' : 'Find an anchor'}
+          data-tour="anchor"
           className="cursor-pointer"
           onClick={onToggle}
         />
@@ -123,8 +130,11 @@ export function SituationWheel({
         {situations.map((s) => (
           <div
             key={s.key}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300"
-            style={{ ...labelPos(s.angle), opacity: expanded ? 1 : 0 }}
+            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300 motion-reduce:transition-none"
+            style={{
+              ...labelPos(s.angle),
+              opacity: expanded ? (faded(s.key) ? 0.35 : 1) : 0,
+            }}
           >
             <s.Icon className="size-[8cqw]" strokeWidth={1.75} style={{ color: s.ink }} />
             <span

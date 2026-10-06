@@ -9,16 +9,28 @@ import { HomeScreen } from './HomeScreen'
 
 // Core-loop tests over the real HomeScreen. Data hooks are mocked with
 // fixtures; the Supabase client itself is a throwing guard (src/test/setup.ts).
-const state = vi.hoisted(() => ({ skills: [] as Skill[] }))
+const state = vi.hoisted(() => ({
+  skills: [] as Skill[],
+  meta: {} as Record<string, unknown>,
+}))
+const tour = vi.hoisted(() => ({ completeTour: vi.fn() }))
 const logger = vi.hoisted(() => ({ startLog: vi.fn(), saveReflection: vi.fn() }))
 const creator = vi.hoisted(() => ({ mutateAsync: vi.fn() }))
 
 vi.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({
-    user: { id: 'user-1', email: 'sam@example.com', user_metadata: { full_name: 'Sam Rivera' } },
+    user: {
+      id: 'user-1',
+      email: 'sam@example.com',
+      user_metadata: { full_name: 'Sam Rivera', ...state.meta },
+    },
     session: {},
     loading: false,
   }),
+}))
+vi.mock('@/features/auth/auth', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/auth/auth')>()),
+  completeTour: tour.completeTour,
 }))
 vi.mock('./useSkills', () => ({
   skillsQueryKey: (userId: string | undefined) => ['skills', userId],
@@ -106,6 +118,8 @@ beforeEach(() => {
   logger.startLog.mockClear()
   logger.saveReflection.mockClear()
   creator.mutateAsync.mockReset()
+  state.meta = {}
+  tour.completeTour.mockReset().mockResolvedValue(undefined)
 })
 
 describe('find → open → log', () => {
@@ -469,5 +483,83 @@ describe('legal pages', () => {
     await user.click(screen.getByRole('button', { name: /Back/ }))
     await user.click(screen.getByRole('button', { name: 'Terms of Service' }))
     expect(screen.getByTitle('Terms of Service')).toHaveAttribute('src', '/terms.html')
+  })
+})
+
+describe('home tour', () => {
+  const tourCard = () =>
+    screen.queryAllByRole('dialog').find((d) => d.getAttribute('aria-modal') === 'false') ?? null
+
+  it('never runs for accounts that predate it (no tour flag)', () => {
+    renderHome()
+    expect(tourCard()).toBeNull()
+  })
+
+  it('walks the anchor, each category, In Distress, and Reflect, then ends for good', async () => {
+    state.meta = { toured: false }
+    const user = userEvent.setup()
+    renderHome()
+
+    const titles: string[] = []
+    for (;;) {
+      const c = tourCard()
+      if (!c) break
+      titles.push(within(c).getByRole('heading').textContent ?? '')
+      const next = within(c).queryByRole('button', { name: 'Next' })
+      if (!next) {
+        // Skip is on every step but the last, which only finishes.
+        expect(within(c).queryByRole('button', { name: 'Skip tour' })).toBeNull()
+        await user.click(within(c).getByRole('button', { name: 'Get started' }))
+        continue
+      }
+      expect(within(c).getByRole('button', { name: 'Skip tour' })).toBeInTheDocument()
+      await user.click(next)
+    }
+
+    expect(titles).toEqual([
+      'A quick look around',
+      'In distress',
+      'Calm down',
+      'Slow the spiral',
+      'Build balance',
+      'Always one tap away',
+      'Reflect when you like',
+      "You're ready",
+    ])
+    expect(tour.completeTour).toHaveBeenCalledTimes(1)
+  })
+
+  it('spotlights the category it is describing', async () => {
+    state.meta = { toured: false }
+    const user = userEvent.setup()
+    renderHome()
+    // Tapping the anchor itself moves the tour on, opening the wheel.
+    await user.click(screen.getByLabelText('Find an anchor'))
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    const wedge = (label: string) => document.querySelector(`path[aria-label="${label}"]`)
+    expect(wedge('In distress')).toHaveAttribute('opacity', '1')
+    expect(wedge('Calm down')).toHaveAttribute('opacity', '0.35')
+  })
+
+  it('ends immediately on Skip tour', async () => {
+    state.meta = { toured: false }
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(within(tourCard()!).getByRole('button', { name: 'Skip tour' }))
+    expect(tourCard()).toBeNull()
+    expect(tour.completeTour).toHaveBeenCalledTimes(1)
+  })
+
+  it('never blocks distress mode: In Distress navigates and ends the tour', async () => {
+    state.meta = { toured: false }
+    const user = userEvent.setup()
+    renderHome()
+    expect(tourCard()).not.toBeNull()
+
+    await user.click(bottomDistressButton())
+    expect(screen.getByRole('heading', { level: 1, name: "Let's just get steady" })).toBeInTheDocument()
+    expectSupportLinks()
+    expect(tourCard()).toBeNull()
+    expect(tour.completeTour).toHaveBeenCalledTimes(1)
   })
 })

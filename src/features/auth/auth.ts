@@ -67,10 +67,24 @@ export function isOnboarded(user: User | null): boolean {
 // are preserved. Firing this updates the session, which flips the app from the
 // onboarding flow to the home screen.
 export async function completeOnboarding(fullName: string) {
-  const data: Record<string, unknown> = { onboarded: true }
+  // `toured: false` queues the one-time home tour for right after onboarding.
+  // Accounts onboarded before the tour existed have no flag and never see it.
+  const data: Record<string, unknown> = { onboarded: true, toured: false }
   const name = fullName.trim()
   if (name) data.full_name = name
   const { error } = await supabase.auth.updateUser({ data })
+  if (error) throw error
+}
+
+// Whether the home-screen tour is still queued for this user (set by
+// completeOnboarding; cleared by completeTour). Like `onboarded`, a UI flag.
+export function needsTour(user: User | null): boolean {
+  return user?.user_metadata?.toured === false
+}
+
+// Mark the home tour as seen, whether it was finished, skipped, or left.
+export async function completeTour() {
+  const { error } = await supabase.auth.updateUser({ data: { toured: true } })
   if (error) throw error
 }
 
