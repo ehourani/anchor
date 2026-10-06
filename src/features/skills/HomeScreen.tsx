@@ -86,22 +86,26 @@ function NavItem({
   label,
   current,
   tone = 'neutral',
-  tourId,
+  ringed = false,
   onClick,
 }: {
   icon: typeof Anchor
   label: string
   current: boolean
   tone?: 'neutral' | 'distress'
-  tourId?: string
+  // Circled by the home tour while it points this item out.
+  ringed?: boolean
   onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
-      data-tour={tourId}
       aria-current={current ? 'page' : undefined}
-      className={`flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
+      className={`${
+        ringed
+          ? 'shadow-[0_0_0_2px_hsl(var(--primary)/0.7),0_0_0_7px_hsl(195_70%_60%/0.18)]'
+          : ''
+      } flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
         // No hover styles: on touch screens hover "sticks" after a tap, which
         // would make the item you just left look selected.
         tone === 'distress'
@@ -425,42 +429,43 @@ export function HomeScreen() {
           ) : (
             /* Home — greeting section, then the anchor section */
             <>
-              {/* Section 1 — greeting, gentle reminder, Today's Skill. It
-                  steps back (layout kept) while the tour's cards need the room. */}
-              <section
-                aria-hidden={tourStep !== null}
-                className={`mt-3 shrink-0 transition-opacity duration-300 motion-reduce:transition-none ${
-                  tourStep !== null ? 'pointer-events-none opacity-0' : ''
-                }`}
-              >
-                <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
-                  {timeGreeting(new Date())}, {greetingName(user)}
-                </h1>
-                <p className="mt-1 text-[0.95rem] text-foreground/60">
-                  Your toolkit is here whenever you need it.
-                </p>
+              {/* Section 1 — greeting, gentle reminder, Today's Skill. The
+                  tour, while it runs, takes this spot instead. */}
+              {tourStep !== null ? (
+                <section className="mt-3 shrink-0">
+                  <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
+                </section>
+              ) : (
+                <section className="mt-3 shrink-0">
+                  <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
+                    {timeGreeting(new Date())}, {greetingName(user)}
+                  </h1>
+                  <p className="mt-1 text-[0.95rem] text-foreground/60">
+                    Your toolkit is here whenever you need it.
+                  </p>
 
-                {todaysSkill && (
-                  <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md">
-                    <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                      Today's Skill to practice
-                    </p>
-                    <p className="mt-1 font-display text-base font-semibold text-foreground">
-                      {todaysSkill.title}
-                    </p>
-                    <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
-                      {todaysSkill.description}
-                    </p>
-                    <button
-                      onClick={() => push({ k: 'skill', id: todaysSkill.id })}
-                      className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-                    >
-                      Try this
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                )}
-              </section>
+                  {todaysSkill && (
+                    <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 px-4 py-3 backdrop-blur-md">
+                      <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                        Today's Skill to practice
+                      </p>
+                      <p className="mt-1 font-display text-base font-semibold text-foreground">
+                        {todaysSkill.title}
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-foreground/60">
+                        {todaysSkill.description}
+                      </p>
+                      <button
+                        onClick={() => push({ k: 'skill', id: todaysSkill.id })}
+                        className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                      >
+                        Try this
+                        <ChevronRight className="size-4" />
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
               {/* A size container: the buoy is a square sized to fit (at
@@ -475,6 +480,7 @@ export function HomeScreen() {
                   <SituationWheel
                     expanded={expanded}
                     focusKey={tourStep !== null ? tourSteps[tourStep].focus ?? null : null}
+                    ringed={tourStep !== null && tourSteps[tourStep].ring === 'wheel'}
                     onToggle={() => {
                       // Tapping the anchor on the tour's first step is its "Next".
                       if (tourStep === 0 && !expanded) return nextTourStep()
@@ -524,7 +530,6 @@ export function HomeScreen() {
           the remaining width and space their items evenly. */}
       <nav
         aria-label="Main"
-        data-tour="nav"
         className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-lg px-2"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] rounded-3xl border border-white/60 bg-white/75 px-1 py-1.5 shadow-[0_8px_24px_-8px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md">
@@ -549,7 +554,7 @@ export function HomeScreen() {
             icon={LifeBuoy}
             label="In Distress"
             tone="distress"
-            tourId="nav-distress"
+            ringed={tourStep !== null && tourSteps[tourStep].ring === 'nav-distress'}
             current={screen.k === 'crisis'}
             onClick={() => navTop({ k: 'crisis' })}
           />
@@ -557,7 +562,7 @@ export function HomeScreen() {
             <NavItem
               icon={NotebookPen}
               label="Reflect"
-              tourId="nav-reflect"
+              ringed={tourStep !== null && tourSteps[tourStep].ring === 'nav-reflect'}
               current={false}
               onClick={() => setLogOpen(true)}
             />
@@ -570,10 +575,6 @@ export function HomeScreen() {
           </div>
         </div>
       </nav>
-
-      {tourStep !== null && isHome && !logOpen && (
-        <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
-      )}
 
       <LogSheet
         open={logOpen}

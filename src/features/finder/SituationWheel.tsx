@@ -48,19 +48,21 @@ export function SituationWheel({
   onToggle,
   onSelect,
   focusKey = null,
+  ringed = false,
 }: {
   expanded: boolean
   onToggle: () => void
   onSelect: (key: string) => void
   // The guided tour spotlights one segment by fading the others back.
   focusKey?: string | null
+  // …and circles the whole buoy to point it out.
+  ringed?: boolean
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
   const faded = (key: string) => focusKey !== null && focusKey !== key
 
   return (
     <div
-      data-tour="wheel"
       className={`relative size-full [container-type:inline-size] ${
         expanded ? '' : 'animate-breathe'
       }`}
@@ -69,6 +71,14 @@ export function SituationWheel({
         viewBox="-110 -110 220 220"
         className="size-full overflow-visible drop-shadow-[0_12px_30px_hsl(200_50%_40%_/_0.18)]"
       >
+        {/* Tour ring — drawn in the buoy's own SVG, so it rides along with
+            it (breathing included) and needs no measuring. */}
+        {ringed && (
+          <g fill="none" pointerEvents="none">
+            <circle r={R + 8} stroke="hsl(195 70% 60% / 0.18)" strokeWidth={10} />
+            <circle r={R + 8} stroke="hsl(var(--primary) / 0.7)" strokeWidth={2.5} />
+          </g>
+        )}
         {situations.map((s, i) => {
           const fill = expanded
             ? hovered === s.key
@@ -119,7 +129,6 @@ export function SituationWheel({
           r={r - 2}
           fill="transparent"
           aria-label={expanded ? 'Close the options' : 'Find an anchor'}
-          data-tour="anchor"
           className="cursor-pointer"
           onClick={onToggle}
         />
