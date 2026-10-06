@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
-
 // The one-time guided tour of the home screen, run right after onboarding.
-// Coach marks, not a modal: nothing blocks the page, so In Distress and the
-// support links stay one tap away (and leaving home simply ends the tour).
+// While it runs, home's other controls are held still so it can't be left by
+// accident; only In Distress stays live (it pauses the tour, never gates it).
 // The card takes the greeting's place at the top of home; what it describes is
 // ringed or spotlit in place by the wheel and the nav themselves.
 
@@ -79,12 +77,6 @@ export function HomeTour({
   onSkip: () => void
 }) {
   const isLast = step === tourSteps.length - 1
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onSkip()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onSkip])
 
   return (
     <div

@@ -49,6 +49,7 @@ export function SituationWheel({
   onSelect,
   focusKey = null,
   ringed = false,
+  locked = false,
 }: {
   expanded: boolean
   onToggle: () => void
@@ -57,118 +58,136 @@ export function SituationWheel({
   focusKey?: string | null
   // …and circles the whole buoy to point it out.
   ringed?: boolean
+  // Ignores taps (the tour holds the wheel still while it talks about it).
+  locked?: boolean
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
   const faded = (key: string) => focusKey !== null && focusKey !== key
 
   return (
-    <div
-      className={`relative size-full [container-type:inline-size] ${
-        expanded ? '' : 'animate-breathe'
-      }`}
-    >
-      <svg
-        viewBox="-110 -110 220 220"
-        className="size-full overflow-visible drop-shadow-[0_12px_30px_hsl(200_50%_40%_/_0.18)]"
+    <div className="relative size-full">
+      <div
+        className={`relative size-full [container-type:inline-size] ${
+          expanded ? '' : 'animate-breathe'
+        }`}
       >
-        {/* Tour ring — drawn in the buoy's own SVG, so it rides along with
-            it (breathing included) and needs no measuring. */}
-        {ringed && (
-          <circle
-            r={R + 16}
-            fill="hsl(var(--primary) / 0.16)"
-            stroke="hsl(var(--primary) / 0.7)"
-            strokeWidth={2.5}
-            pointerEvents="none"
-          />
-        )}
-        {situations.map((s, i) => {
-          const fill = expanded
-            ? hovered === s.key
-              ? s.hover
-              : s.fill
-            : BUOY_FILLS[i % 2]
-          return (
-            <path
-              key={s.key}
-              d={sectorPath(s.angle)}
-              fill={fill}
-              stroke="none"
-              aria-label={expanded ? s.label : undefined}
-              opacity={faded(s.key) ? 0.35 : 1}
-              className="cursor-pointer transition-[fill,opacity] duration-300 motion-reduce:transition-none"
-              onMouseEnter={expanded ? () => setHovered(s.key) : undefined}
-              onMouseLeave={
-                expanded
-                  ? () => setHovered((h) => (h === s.key ? null : h))
-                  : undefined
-              }
-              onClick={expanded ? () => onSelect(s.key) : onToggle}
-            />
-          )
-        })}
-        {/* White life-buoy frame — outer + inner ring edges and the four
-            lashings between quadrants. Decorative, so clicks pass through. */}
-        <g
-          stroke="white"
-          fill="none"
-          strokeWidth={4}
-          strokeLinecap="round"
-          pointerEvents="none"
-        >
-          <circle cx={0} cy={0} r={R} />
-          <circle cx={0} cy={0} r={r} />
-          {BANDS.map((deg) => {
-            const [x1, y1] = polar(r, deg)
-            const [x2, y2] = polar(R, deg)
-            return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} />
-          })}
-        </g>
-
-        {/* Hollow center — transparent click target to bloom / un-bloom */}
-        <circle
-          cx={0}
-          cy={0}
-          r={r - 2}
-          fill="transparent"
-          aria-label={expanded ? 'Close the options' : 'Find an anchor'}
-          className="cursor-pointer"
-          onClick={onToggle}
-        />
-      </svg>
-
-      {/* Icon + label overlay; clicks pass through to the SVG below */}
-      <div className="pointer-events-none absolute inset-0">
-        {situations.map((s) => (
-          <div
-            key={s.key}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300 motion-reduce:transition-none"
-            style={{
-              ...labelPos(s.angle),
-              opacity: expanded ? (faded(s.key) ? 0.35 : 1) : 0,
-            }}
-          >
-            <s.Icon className="size-[8cqw]" strokeWidth={1.75} style={{ color: s.ink }} />
-            <span
-              className="whitespace-nowrap text-[3.9cqw] font-semibold leading-tight"
-              style={{ color: s.ink }}
-            >
-              {s.wheelLines.map((line, i) => (
-                <span key={i} className="block">
-                  {line}
-                </span>
-              ))}
-            </span>
-          </div>
-        ))}
-        <div
-          className={`absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[width,height] duration-[360ms] ${
-            expanded ? 'size-[21%]' : 'size-[27%]'
+        <svg
+          viewBox="-110 -110 220 220"
+          className={`size-full overflow-visible drop-shadow-[0_12px_30px_hsl(200_50%_40%_/_0.18)] ${
+            locked ? 'pointer-events-none' : ''
           }`}
         >
-          <Anchor className="size-full text-foreground" strokeWidth={1.5} />
+          {situations.map((s, i) => {
+            const fill = expanded
+              ? hovered === s.key
+                ? s.hover
+                : s.fill
+              : BUOY_FILLS[i % 2]
+            return (
+              <path
+                key={s.key}
+                d={sectorPath(s.angle)}
+                fill={fill}
+                stroke="none"
+                aria-label={expanded ? s.label : undefined}
+                opacity={faded(s.key) ? 0.35 : 1}
+                className="cursor-pointer transition-[fill,opacity] duration-300 motion-reduce:transition-none"
+                onMouseEnter={expanded ? () => setHovered(s.key) : undefined}
+                onMouseLeave={
+                  expanded
+                    ? () => setHovered((h) => (h === s.key ? null : h))
+                    : undefined
+                }
+                onClick={locked ? undefined : expanded ? () => onSelect(s.key) : onToggle}
+              />
+            )
+          })}
+          {/* White life-buoy frame — outer + inner ring edges and the four
+            lashings between quadrants. Decorative, so clicks pass through. */}
+          <g
+            stroke="white"
+            fill="none"
+            strokeWidth={4}
+            strokeLinecap="round"
+            pointerEvents="none"
+          >
+            <circle cx={0} cy={0} r={R} />
+            <circle cx={0} cy={0} r={r} />
+            {BANDS.map((deg) => {
+              const [x1, y1] = polar(r, deg)
+              const [x2, y2] = polar(R, deg)
+              return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} />
+            })}
+          </g>
+
+          {/* Hollow center — transparent click target to bloom / un-bloom */}
+          <circle
+            cx={0}
+            cy={0}
+            r={r - 2}
+            fill="transparent"
+            aria-label={expanded ? 'Close the options' : 'Find an anchor'}
+            className="cursor-pointer"
+            onClick={locked ? undefined : onToggle}
+          />
+        </svg>
+
+        {/* Icon + label overlay; clicks pass through to the SVG below */}
+        <div className="pointer-events-none absolute inset-0">
+          {situations.map((s) => (
+            <div
+              key={s.key}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[1.4cqw] text-center transition-opacity duration-300 motion-reduce:transition-none"
+              style={{
+                ...labelPos(s.angle),
+                opacity: expanded ? (faded(s.key) ? 0.35 : 1) : 0,
+              }}
+            >
+              <s.Icon
+                className="size-[8cqw]"
+                strokeWidth={1.75}
+                style={{ color: s.ink }}
+              />
+              <span
+                className="whitespace-nowrap text-[3.9cqw] font-semibold leading-tight"
+                style={{ color: s.ink }}
+              >
+                {s.wheelLines.map((line, i) => (
+                  <span key={i} className="block">
+                    {line}
+                  </span>
+                ))}
+              </span>
+            </div>
+          ))}
+          <div
+            className={`absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[width,height] duration-[360ms] ${
+              expanded ? 'size-[21%]' : 'size-[27%]'
+            }`}
+          >
+            <Anchor className="size-full text-foreground" strokeWidth={1.5} />
+          </div>
         </div>
       </div>
+
+      {/* Tour highlight — a tinted disc over the whole buoy, ringed a little
+          way out. It sits outside the breathing wrapper so it holds still
+          (and reads as a highlight, not part of the buoy); clicks pass
+          through to the buoy beneath. */}
+      {ringed && (
+        <svg
+          viewBox="-110 -110 220 220"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 size-full overflow-visible"
+        >
+          <circle
+            r={R + 20}
+            fill="hsl(48 100% 75% / 0.14)"
+            stroke="hsl(44 80% 60% / 0.75)"
+            strokeWidth={2}
+          />
+        </svg>
+      )}
     </div>
   )
 }

@@ -87,6 +87,7 @@ function NavItem({
   current,
   tone = 'neutral',
   ringed = false,
+  disabled = false,
   onClick,
 }: {
   icon: typeof Anchor
@@ -95,17 +96,20 @@ function NavItem({
   tone?: 'neutral' | 'distress'
   // Circled by the home tour while it points this item out.
   ringed?: boolean
+  // Held still during the home tour (every item but In Distress).
+  disabled?: boolean
   onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       aria-current={current ? 'page' : undefined}
       className={`${
         ringed
-          ? 'shadow-[0_0_0_2px_hsl(var(--primary)/0.7),0_0_0_7px_hsl(195_70%_60%/0.18)]'
+          ? 'bg-[hsl(48_100%_75%/0.14)] shadow-[0_0_0_2px_hsl(44_80%_60%/0.75)]'
           : ''
-      } flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
+      } ${disabled ? 'opacity-40' : ''} flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
         // No hover styles: on touch screens hover "sticks" after a tap, which
         // would make the item you just left look selected.
         tone === 'distress'
@@ -168,7 +172,7 @@ export function HomeScreen() {
   // Bottom-nav destinations reset to one level deep, so Back returns home.
   const navTop = (s: Screen) => setStack([{ k: 'home' }, s])
 
-  // Finished, skipped, or left: either way it's seen, and it never comes back.
+  // Finished or skipped: either way it's seen, and it never comes back.
   const endTour = () => {
     setTourStep(null)
     setExpanded(false)
@@ -181,13 +185,14 @@ export function HomeScreen() {
     if (tourSteps[n].wheelOpen) setExpanded(true)
     setTourStep(n)
   }
-  // The tour never holds anyone on home: going anywhere (In Distress, a
-  // category, Reflect…) ends it and they land where they tapped.
-  const leftHome = screen.k !== 'home' || logOpen
+  // While the tour is up, home's controls hold still so it can't be left by
+  // accident (the buoy itself stays tappable on the first step). In Distress
+  // is never gated: it pauses the tour, which picks up where it was on return.
+  const tourLocks = tourStep !== null && isHome
   useEffect(() => {
-    if (tourStep !== null && leftHome) endTour()
+    if (tourLocks && tourSteps[tourStep].wheelOpen) setExpanded(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leftHome])
+  }, [tourLocks])
 
   // Live, per-user skills from Supabase.
   const { data: skills = [], isLoading, isError } = useSkills()
@@ -267,6 +272,7 @@ export function HomeScreen() {
 
           <button
             onClick={goHome}
+            disabled={tourLocks}
             aria-label="Anchor — go home"
             className="flex items-center gap-2 rounded-full px-1 py-0.5 transition-opacity hover:opacity-80"
           >
@@ -481,6 +487,7 @@ export function HomeScreen() {
                     expanded={expanded}
                     focusKey={tourStep !== null ? tourSteps[tourStep].focus ?? null : null}
                     ringed={tourStep !== null && tourSteps[tourStep].ring === 'wheel'}
+                    locked={tourLocks && tourStep !== 0}
                     onToggle={() => {
                       // Tapping the anchor on the tour's first step is its "Next".
                       if (tourStep === 0 && !expanded) return nextTourStep()
@@ -537,12 +544,14 @@ export function HomeScreen() {
             <NavItem
               icon={House}
               label="Home"
+              disabled={tourLocks}
               current={screen.k === 'home'}
               onClick={goHome}
             />
             <NavItem
               icon={Anchor}
               label="My Anchors"
+              disabled={tourLocks}
               ringed={tourStep !== null && tourSteps[tourStep].ring === 'nav-anchors'}
               current={screen.k === 'all-skills'}
               onClick={() => {
@@ -563,6 +572,7 @@ export function HomeScreen() {
             <NavItem
               icon={NotebookPen}
               label="Reflect"
+              disabled={tourLocks}
               ringed={tourStep !== null && tourSteps[tourStep].ring === 'nav-reflect'}
               current={false}
               onClick={() => setLogOpen(true)}
@@ -570,6 +580,7 @@ export function HomeScreen() {
             <NavItem
               icon={CircleUser}
               label="Account"
+              disabled={tourLocks}
               current={screen.k === 'account' || screen.k === 'legal'}
               onClick={() => navTop({ k: 'account' })}
             />

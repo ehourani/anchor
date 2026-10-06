@@ -551,16 +551,43 @@ describe('home tour', () => {
     expect(tour.completeTour).toHaveBeenCalledTimes(1)
   })
 
-  it('never blocks distress mode: In Distress navigates and ends the tour', async () => {
+  it('holds home still mid-tour, except In Distress', async () => {
     state.meta = { toured: false }
     const user = userEvent.setup()
     renderHome()
-    expect(tourCard()).not.toBeNull()
+    for (const name of ['Home', 'My Anchors', 'Reflect', 'Account']) {
+      expect(tab(name)).toBeDisabled()
+    }
+    expect(bottomDistressButton()).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Anchor — go home' })).toBeDisabled()
+
+    // The buoy itself is the one live control on the first step…
+    await user.click(screen.getByLabelText('Find an anchor'))
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    // …after that the wheel holds still: no leaving via a category.
+    const wedge = document.querySelector('path[aria-label="Calm down"]')!
+    await user.click(wedge)
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    expect(screen.queryByRole('heading', { level: 1, name: "Let's soften what you're feeling" })).toBeNull()
+  })
+
+  it('never blocks distress mode: In Distress pauses the tour, which resumes back home', async () => {
+    state.meta = { toured: false }
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('Calm down')
 
     await user.click(bottomDistressButton())
     expect(screen.getByRole('heading', { level: 1, name: "Let's just get steady" })).toBeInTheDocument()
     expectSupportLinks()
     expect(tourCard()).toBeNull()
-    expect(tour.completeTour).toHaveBeenCalledTimes(1)
+    expect(tour.completeTour).not.toHaveBeenCalled()
+
+    // Off home, the nav is fully live; Home brings the tour back where it was.
+    await user.click(tab('Home'))
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('Calm down')
+    expect(document.querySelector('path[aria-label="Calm down"]')).toHaveAttribute('opacity', '1')
   })
 })
