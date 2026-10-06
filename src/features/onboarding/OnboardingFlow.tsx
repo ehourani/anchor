@@ -40,14 +40,31 @@ function pickStarters(skills: Skill[]): string[] {
     .map((s) => s.id)
 }
 
-// Progressive build: each piece fades up after the one before it.
-function Reveal({ order, children }: { order: number; children: ReactNode }) {
+// Progressive build: a piece that fades up after `delay` seconds, over
+// `duration` seconds.
+function Reveal({
+  delay = 0,
+  duration = 0.6,
+  children,
+}: {
+  delay?: number
+  duration?: number
+  children: ReactNode
+}) {
   return (
-    <div className="animate-fade-rise" style={{ animationDelay: `${order * 0.5}s` }}>
+    <div
+      className="animate-fade-rise"
+      style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+    >
       {children}
     </div>
   )
 }
+
+// The slower welcome/greeting/finish rhythm: each piece fades in over 1s, with
+// a 0.5s pause before the next (so they start at 0s, 1.5s, 3s, …).
+const SLOW_FADE = 1
+const slowBeat = (i: number) => i * (SLOW_FADE + 0.5)
 
 // Large, centered brand mark for the welcome, name, and explainer steps.
 function AnchorLogo() {
@@ -156,7 +173,7 @@ export function OnboardingFlow() {
     const timer = setTimeout(() => {
       setGreeting(false)
       setStep(2)
-    }, 2800)
+    }, 4000)
     return () => clearTimeout(timer)
   }, [greeting])
 
@@ -230,12 +247,12 @@ export function OnboardingFlow() {
         >
           {greeting && (
             <div className="px-2 text-center">
-              <Reveal order={0}>
+              <Reveal delay={slowBeat(0)} duration={SLOW_FADE}>
                 <p className="font-display text-3xl font-semibold leading-tight text-foreground">
                   Nice to meet you, {first.trim()}.
                 </p>
               </Reveal>
-              <Reveal order={1}>
+              <Reveal delay={slowBeat(1)} duration={SLOW_FADE}>
                 <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
                   Let's get you set up with Anchor.
                 </p>
@@ -245,15 +262,23 @@ export function OnboardingFlow() {
 
           {!greeting && step === 0 && (
             <div className="px-2 text-center">
-              <AnchorLogo />
-              <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-foreground">
-                Hello{first ? `, ${first}` : ''}.
-              </h1>
-              <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
-                Welcome to Anchor — a calm place to reach the coping skill you need,
-                right when you need it. Let's take a minute to set up your toolkit
-                together. You can change anything later.
-              </p>
+              <Reveal delay={slowBeat(0)} duration={SLOW_FADE}>
+                <AnchorLogo />
+                <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-foreground">
+                  Hello{first ? `, ${first}` : ''}.
+                </h1>
+              </Reveal>
+              <Reveal delay={slowBeat(1)} duration={SLOW_FADE}>
+                <p className="mt-2 font-display text-xl font-semibold text-foreground/75">
+                  Welcome to Anchor
+                </p>
+              </Reveal>
+              <Reveal delay={slowBeat(2)} duration={SLOW_FADE}>
+                <p className="mt-8 text-[0.97rem] leading-relaxed text-foreground/65">
+                  Let's take a minute to set up your coping skill toolkit
+                  together. You can change anything later.
+                </p>
+              </Reveal>
             </div>
           )}
 
@@ -289,13 +314,13 @@ export function OnboardingFlow() {
 
           {!greeting && step === 2 && (
             <div className="px-2 text-center">
-              <Reveal order={0}>
+              <Reveal delay={0}>
                 <AnchorLogo />
                 <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
                   Anchors are your coping skills
                 </h1>
               </Reveal>
-              <Reveal order={1}>
+              <Reveal delay={0.5}>
                 <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
                   Small, healthy things to reach for when you're feeling
                   activated, so you can lean on them instead of ED behaviors.
@@ -306,13 +331,13 @@ export function OnboardingFlow() {
 
           {!greeting && step === 3 && (
             <div className="px-2 text-center">
-              <Reveal order={0}>
+              <Reveal delay={0}>
                 <DistressLogo />
                 <h1 className="mt-6 font-display text-2xl font-semibold leading-tight text-foreground">
                   Distress anchors are for the hardest moments
                 </h1>
               </Reveal>
-              <Reveal order={1}>
+              <Reveal delay={0.5}>
                 <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
                   When urges or feelings get really loud, you can turn to your
                   distress anchors: a few you choose ahead of time, kept together
@@ -401,16 +426,20 @@ export function OnboardingFlow() {
           )}
 
           {!greeting && step === 6 && (
-            <div className="text-center">
-              <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                <Check className="size-8" />
-              </span>
-              <h1 className="mt-5 font-display text-2xl font-semibold leading-tight text-foreground">
-                You're all set{first ? `, ${first}` : ''}.
-              </h1>
-              <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
-                Your toolkit is ready. It's here whenever you need it.
-              </p>
+            <div className="px-2 text-center">
+              <Reveal delay={slowBeat(0)} duration={SLOW_FADE}>
+                <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                  <Check className="size-8" />
+                </span>
+                <h1 className="mt-5 font-display text-2xl font-semibold leading-tight text-foreground">
+                  You're all set{first ? `, ${first}` : ''}.
+                </h1>
+              </Reveal>
+              <Reveal delay={slowBeat(1)} duration={SLOW_FADE}>
+                <p className="mt-3 text-[0.97rem] leading-relaxed text-foreground/65">
+                  Your anchors are ready, here whenever you need them.
+                </p>
+              </Reveal>
               {error && (
                 <p className="mt-3 text-sm text-destructive">
                   Something went wrong finishing setup. Please try again.
@@ -441,7 +470,7 @@ export function OnboardingFlow() {
               {step === 0
                 ? 'Get started'
                 : isLast
-                  ? 'Enter your toolkit'
+                  ? 'Enter Anchor'
                   : 'Continue'}
               {!isLast && <ChevronRight className="size-4" />}
             </button>

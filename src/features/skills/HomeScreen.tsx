@@ -73,9 +73,9 @@ function screenKey(s: Screen): string {
   return s.k
 }
 
-// One item in the bottom nav: icon over a label, ≥44px tall. No filled
-// backgrounds, so nothing reads as "selected" except the screen you're on,
-// which gets a small dot under its label.
+// One item in the bottom nav: icon over a label, ≥44px tall. Only the screen
+// you're on is highlighted — a soft fill (light blue, or coral for distress)
+// plus a small dot under its label.
 function NavItem({
   icon: Icon,
   label,
@@ -93,14 +93,14 @@ function NavItem({
     <button
       onClick={onClick}
       aria-current={current ? 'page' : undefined}
-      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl pb-1.5 pt-2 font-semibold leading-tight transition-colors hover:bg-white/60 ${
-        'min-w-11 px-1.5 text-[0.68rem]'
-      } ${
+      className={`flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
+        // No hover styles: on touch screens hover "sticks" after a tap, which
+        // would make the item you just left look selected.
         tone === 'distress'
-          ? 'text-[hsl(8,52%,46%)] hover:text-[hsl(8,58%,38%)]'
+          ? `text-[hsl(8,52%,46%)] ${current ? 'bg-[hsl(10,76%,93%)]' : ''}`
           : current
-            ? 'text-primary'
-            : 'text-foreground/60 hover:text-foreground'
+            ? 'bg-primary/10 text-primary'
+            : 'text-foreground/60'
       }`}
     >
       <Icon className="size-6 shrink-0" strokeWidth={tone === 'distress' ? 1.9 : 1.75} />

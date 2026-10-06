@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Pencil } from 'lucide-react'
+import { ChevronRight, LifeBuoy, Pencil } from 'lucide-react'
 
 import type { Skill } from '@/features/skills/sampleSkills'
 import { SupportLinks } from './SupportLinks'
@@ -63,6 +63,12 @@ export function CrisisScreen({
               onClick={() => onOpenSkill(s.id)}
               className="flex w-full items-center gap-3 rounded-2xl border border-white/70 bg-white/75 p-4 text-left shadow-[0_8px_30px_-12px_hsl(200_50%_40%_/_0.25)] backdrop-blur-md transition-colors hover:bg-white"
             >
+              <span
+                aria-hidden="true"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[hsl(10,76%,93%)] text-[hsl(8,58%,52%)]"
+              >
+                <LifeBuoy className="size-5" />
+              </span>
               <div className="min-w-0 flex-1">
                 <h3 className="font-display text-lg font-semibold leading-snug text-foreground">
                   {s.title}

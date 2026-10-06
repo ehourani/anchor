@@ -358,5 +358,16 @@ describe('bottom nav', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Account & data' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
     expect(tab('Account')).toHaveAttribute('aria-current', 'page')
+    // The current item is highlighted (light blue), the others aren't.
+    expect(tab('Account').className).toMatch(/bg-primary\/10/)
+    expect(tab('Home').className).not.toMatch(/bg-primary\/10/)
+  })
+
+  it('highlights In Distress in coral when you are there', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('In Distress'))
+    expect(tab('In Distress')).toHaveAttribute('aria-current', 'page')
+    expect(tab('In Distress').className).toMatch(/bg-\[hsl\(10,76%,93%\)\]/)
   })
 })

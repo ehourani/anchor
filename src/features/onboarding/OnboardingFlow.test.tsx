@@ -7,6 +7,9 @@ import { makeSkill, tag } from '@/test/fixtures'
 import type { Skill } from '@/features/skills/sampleSkills'
 import { OnboardingFlow } from './OnboardingFlow'
 
+// The greeting holds for ~4s before moving on, so flows through it need room.
+vi.setConfig({ testTimeout: 15000 })
+
 const state = vi.hoisted(() => ({ skills: [] as Skill[] }))
 const deleteSkill = vi.hoisted(() => vi.fn())
 
@@ -60,7 +63,7 @@ async function goToStarters(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Last name'), 'Rivera')
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   // The greeting moves on by itself after a moment.
-  await screen.findByRole('heading', { name: 'Anchors are your coping skills' }, { timeout: 4000 })
+  await screen.findByRole('heading', { name: 'Anchors are your coping skills' }, { timeout: 6000 })
   await user.click(screen.getByRole('button', { name: 'Continue' }))
   await user.click(screen.getByRole('button', { name: 'Continue' }))
 }
@@ -81,6 +84,11 @@ describe('OnboardingFlow', () => {
     const user = userEvent.setup()
     renderFlow()
 
+    expect(screen.getByRole('heading', { name: 'Hello.' })).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Anchor')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Let's take a minute to set up your coping skill toolkit together/),
+    ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Get started' }))
 
     // Both names are required before Continue unlocks.
@@ -98,7 +106,7 @@ describe('OnboardingFlow', () => {
       await screen.findByRole(
         'heading',
         { name: 'Anchors are your coping skills' },
-        { timeout: 4000 },
+        { timeout: 6000 },
       ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Continue' }))
@@ -117,6 +125,13 @@ describe('OnboardingFlow', () => {
       screen.getByRole('heading', { level: 1, name: 'Your distress anchors' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/No distress anchors yet, and that's okay/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(screen.getByRole('heading', { name: "You're all set, Sam." })).toBeInTheDocument()
+    expect(
+      screen.getByText('Your anchors are ready, here whenever you need them.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enter Anchor' })).toBeInTheDocument()
   })
 
   it('shows exactly 4 starter defaults, plus anchors the user added', async () => {
