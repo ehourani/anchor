@@ -543,6 +543,7 @@ export function HomeScreen() {
             <NavItem
               icon={Anchor}
               label="My Anchors"
+              ringed={tourStep !== null && tourSteps[tourStep].ring === 'nav-anchors'}
               current={screen.k === 'all-skills'}
               onClick={() => {
                 setFilters(emptyFilters())

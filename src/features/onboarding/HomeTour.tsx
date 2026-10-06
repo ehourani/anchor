@@ -10,7 +10,7 @@ export type TourStep = {
   title: string
   body: string
   // What to circle with a soft ring: the whole buoy, or a nav item.
-  ring?: 'wheel' | 'nav-distress' | 'nav-reflect'
+  ring?: 'wheel' | 'nav-anchors' | 'nav-distress' | 'nav-reflect'
   // A wheel segment to spotlight (the others fade back).
   focus?: string
   // The wheel should be open for this step.
@@ -57,6 +57,11 @@ export const tourSteps: TourStep[] = [
     title: 'Reflect when you like',
     body: 'After you use an anchor, tap Reflect to note it. Adding how it went is always optional.',
     ring: 'nav-reflect',
+  },
+  {
+    title: 'All your anchors',
+    body: 'My Anchors holds every anchor you have. Browse them, edit them, or add your own.',
+    ring: 'nav-anchors',
   },
   {
     title: "You're ready",

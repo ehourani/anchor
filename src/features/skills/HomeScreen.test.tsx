@@ -495,7 +495,7 @@ describe('home tour', () => {
     expect(tourCard()).toBeNull()
   })
 
-  it('walks the anchor, each category, In Distress, and Reflect, then ends for good', async () => {
+  it('walks the anchor, each category, In Distress, Reflect, and My Anchors, then ends for good', async () => {
     state.meta = { toured: false }
     const user = userEvent.setup()
     renderHome()
@@ -524,6 +524,7 @@ describe('home tour', () => {
       'Build balance',
       'Always one tap away',
       'Reflect when you like',
+      'All your anchors',
       "You're ready",
     ])
     expect(tour.completeTour).toHaveBeenCalledTimes(1)
