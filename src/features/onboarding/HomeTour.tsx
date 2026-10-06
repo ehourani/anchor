@@ -6,7 +6,8 @@
 
 export type TourStep = {
   title: string
-  body: string
+  // Optional: a title-only step (the intro) centers in the card instead.
+  body?: string
   // What to circle with a soft ring: the whole buoy, or a nav item.
   ring?: 'wheel' | 'nav-anchors' | 'nav-distress' | 'nav-reflect'
   // A wheel segment to spotlight (the others fade back).
@@ -19,7 +20,6 @@ export type TourStep = {
 export const tourSteps: TourStep[] = [
   {
     title: "Let's show you around",
-    body: 'A few quick stops. Skip anytime.',
   },
   {
     title: 'Start here',
@@ -97,24 +97,21 @@ export function HomeTour({
           <div
             key={s.title}
             aria-hidden={i !== step}
-            className={`col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none ${
+            className={`col-start-1 row-start-1 ${s.body ? '' : 'self-center'} transition-opacity duration-300 motion-reduce:transition-none ${
               i === step ? 'opacity-100' : 'invisible opacity-0'
             }`}
           >
-            <div className="flex items-baseline justify-between gap-3">
-              <h2
-                id={i === step ? 'home-tour-title' : undefined}
-                className="font-display text-base font-semibold text-foreground"
-              >
-                {s.title}
-              </h2>
-              <span className="shrink-0 text-xs font-medium text-foreground/40">
-                {i + 1} of {tourSteps.length}
-              </span>
-            </div>
-            <p className="mt-0.5 text-sm leading-snug text-foreground/65">
-              {s.body}
-            </p>
+            <h2
+              id={i === step ? 'home-tour-title' : undefined}
+              className="font-display text-base font-semibold text-foreground"
+            >
+              {s.title}
+            </h2>
+            {s.body && (
+              <p className="mt-0.5 text-sm leading-snug text-foreground/65">
+                {s.body}
+              </p>
+            )}
           </div>
         ))}
       </div>
