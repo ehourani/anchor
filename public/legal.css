@@ -42,3 +42,15 @@ p { margin: 0.6rem 0; }
 a { color: var(--primary); }
 strong { color: var(--fg); }
 .back { margin-top: 2rem; }
+h3 {
+  font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem; margin: 1.25rem 0 0.25rem;
+}
+ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+li { margin: 0.25rem 0; }
+/* Inside the app's legal viewer: blend into the app (no own background or
+   outer padding) and drop the site brand/back links. */
+.embedded body { background: transparent; min-height: 0; }
+.embedded .brand, .embedded .back { display: none; }
+.embedded .wrap { padding: 0 0 1rem; }
+.embedded h1 { margin-top: 0; font-size: 1.6rem; }

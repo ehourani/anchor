@@ -20,6 +20,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { AllLogsScreen } from '@/features/history/AllLogsScreen'
 import { SkillLogsScreen } from '@/features/history/SkillLogsScreen'
 import { AccountScreen } from '@/features/account/AccountScreen'
+import { LegalScreen, type LegalDoc } from '@/features/legal/LegalScreen'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { SkillSheet } from './SkillSheet'
 import { SkillCard } from './SkillCard'
@@ -65,11 +66,13 @@ type Screen =
   | { k: 'skill-logs'; id: string }
   | { k: 'crisis' }
   | { k: 'account' }
+  | { k: 'legal'; doc: LegalDoc }
 
 function screenKey(s: Screen): string {
   if (s.k === 'situation') return `situation:${s.key}`
   if (s.k === 'skill') return `skill:${s.id}`
   if (s.k === 'skill-logs') return `skill-logs:${s.id}`
+  if (s.k === 'legal') return `legal:${s.doc}`
   return s.k
 }
 
@@ -276,7 +279,9 @@ export function HomeScreen() {
           ) : screen.k === 'all-logs' ? (
             <AllLogsScreen />
           ) : screen.k === 'account' ? (
-            <AccountScreen />
+            <AccountScreen onOpenLegal={(doc) => push({ k: 'legal', doc })} />
+          ) : screen.k === 'legal' ? (
+            <LegalScreen doc={screen.doc} />
           ) : screen.k === 'all-skills' ? (
             /* My Anchors — the full toolkit */
             <>
@@ -512,7 +517,7 @@ export function HomeScreen() {
             <NavItem
               icon={CircleUser}
               label="Account"
-              current={screen.k === 'account'}
+              current={screen.k === 'account' || screen.k === 'legal'}
               onClick={() => navTop({ k: 'account' })}
             />
           </div>

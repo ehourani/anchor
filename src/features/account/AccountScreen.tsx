@@ -14,6 +14,7 @@ import {
   exportReflectionsCsv,
   exportSkillsCsv,
 } from './exportData'
+import type { LegalDoc } from '@/features/legal/LegalScreen'
 
 const cardClass =
   'rounded-2xl border border-white/60 bg-white/55 p-5 backdrop-blur-md'
@@ -23,7 +24,11 @@ const labelClass =
 // The account & data screen: who you're signed in as (and sign out), change
 // your password,
 // export everything you've recorded, and (carefully) delete your account.
-export function AccountScreen() {
+export function AccountScreen({
+  onOpenLegal,
+}: {
+  onOpenLegal: (doc: LegalDoc) => void
+}) {
   const { user } = useAuth()
   const canChangePassword = hasPasswordLogin(user)
 
@@ -58,23 +63,19 @@ export function AccountScreen() {
         <DangerZone />
 
         <p className="pt-1 text-center text-xs text-foreground/45">
-          <a
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => onOpenLegal('privacy')}
             className="underline underline-offset-2 transition-colors hover:text-foreground/70"
           >
             Privacy Policy
-          </a>
+          </button>
           <span className="mx-2">·</span>
-          <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => onOpenLegal('terms')}
             className="underline underline-offset-2 transition-colors hover:text-foreground/70"
           >
             Terms of Service
-          </a>
+          </button>
         </p>
       </div>
     </>

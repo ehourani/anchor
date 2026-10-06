@@ -16,6 +16,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/legal.css" />
+    <script>
+      // Shown inside the app (in a frame): hide the site-level brand + back
+      // links, which would otherwise load the app inside itself.
+      if (window.self !== window.top) document.documentElement.classList.add('embedded')
+    </script>
   </head>
   <body>
     <main class="wrap">
@@ -29,98 +34,113 @@
       </a>
 
       <h1>Privacy Policy</h1>
-      <p class="eff">Effective June 14, 2026</p>
+      <p class="eff">Effective June 30, 2026</p>
 
       <div class="card">
-        <p>
-          Anchor is a personal tool for finding and tracking healthy coping
-          skills. The information you keep here is sensitive, and protecting it is
-          built into how the app works. This policy explains what's collected, how
-          it's used, and the control you have over it.
-        </p>
-
-        <h2>What we collect</h2>
-        <p>
-          <strong>Account details:</strong> the email address you sign up with, and
-          a name if you choose to add one. If you sign in with Google, we receive
-          your basic Google profile (name and email) to create your account —
-          nothing more.
-        </p>
-        <p>
-          <strong>Your content:</strong> the skills you add (titles, descriptions,
-          tags), your crisis set, and the reflections you log (when you used a
-          skill, an optional helpfulness rating, and any notes).
-        </p>
-        <p>
-          We do not use analytics, advertising, or third-party trackers, and we
-          don't collect your location, contacts, or any health metrics beyond what
-          you choose to write down.
-        </p>
-
-        <h2>How your information is used</h2>
-        <p>
-          Your information is used only to provide the app to you — to show your
-          toolkit, power crisis mode, and keep your reflections. It is never sold,
-          never shared for advertising, and never used to train any models.
-        </p>
-
-        <h2>Where it's stored and who can see it</h2>
-        <p>
-          Your data lives in a Supabase (PostgreSQL) database and is protected by
-          row-level security, so each account can only ever read or write its own
-          data. It is encrypted in transit. Only you can see your information — it
-          is not visible to other users, and not shared with clinicians or anyone
-          else unless you choose to export and share it yourself.
-        </p>
-
-        <h2>Service providers</h2>
-        <p>
-          We rely on a small number of providers that process data on our behalf:
-          Supabase (database and authentication), Vercel (hosting), and Google (only
-          if you choose to sign in with Google). They process your data solely to
-          run the service.
-        </p>
-
-        <h2>Your choices and rights</h2>
-        <p>
-          From the Account &amp; data screen you can, at any time: export all of your
-          data as JSON or CSV, change your password, and permanently delete your
-          account along with all of your skills and reflections. Deletion is
-          immediate and cannot be undone.
-        </p>
-
-        <h2>Data retention</h2>
-        <p>
-          Your information is kept for as long as your account exists. When you
-          delete your account, your data is removed.
-        </p>
-
-        <h2>Safety</h2>
-        <p>
-          Anchor is a self-help tool, not a medical device or a substitute for
-          professional care, and it is not an emergency service. If you are in
-          crisis, the app always offers support contacts (the National Alliance for
-          Eating Disorders and the 988 Suicide &amp; Crisis Lifeline). If you are in
-          immediate danger, call 988 or 911.
-        </p>
-
-        <h2>Children</h2>
-        <p>
-          Anchor is not intended for children under 13, and we do not knowingly
-          collect information from them.
-        </p>
-
-        <h2>Changes to this policy</h2>
-        <p>
-          If this policy changes, the effective date above will be updated. Material
-          changes will be communicated within the app.
-        </p>
-
+        <p>Welcome to <strong>Anchor</strong>. Anchor is a personal self-help tool designed to help you organize healthy coping skills, create a crisis toolkit, and reflect on what supports your wellbeing. We understand that the information you choose to store in Anchor may be personal or sensitive, and we are committed to handling it responsibly.</p>
+        <p>This Privacy Policy explains what information we collect, how we use it, when it may be shared, how long we retain it, and the choices you have regarding your information.</p>
+        <h2>Information We Collect</h2>
+        <h3>Information You Provide</h3>
+        <p>When you create and use an Anchor account, you may provide:</p>
+        <ul>
+          <li>Your email address.</li>
+          <li>Your name, if you choose to add one.</li>
+          <li>If you sign in with Google, your basic Google account information (such as your name and email address) needed to create and authenticate your account.</li>
+        </ul>
+        <p>You may also choose to store information within the app, including:</p>
+        <ul>
+          <li>Coping skills you create, including titles, descriptions, and tags.</li>
+          <li>Your crisis toolkit.</li>
+          <li>Reflections about your use of coping skills, including timestamps, optional helpfulness ratings, and any notes you choose to write.</li>
+        </ul>
+        <p>You are never required to include medical or personally identifying information in your reflections, although you may choose to do so.</p>
+        <h3>Technical Information</h3>
+        <p>To operate the service, we also process limited technical information, such as:</p>
+        <ul>
+          <li>Authentication and session information needed to keep you signed in.</li>
+          <li>Basic server logs generated while providing the service.</li>
+          <li>Information necessary to diagnose technical issues or maintain security.</li>
+        </ul>
+        <p>We do <strong>not</strong> use advertising technologies, analytics platforms, behavioral tracking, or third-party advertising cookies.</p>
+        <p>We do <strong>not</strong> collect your location, contacts, photographs, microphone recordings, health metrics, or other device information except as necessary to operate the app or as you voluntarily provide.</p>
+        <h2>How We Use Your Information</h2>
+        <p>We use your information only to provide and improve Anchor. Specifically, we use it to:</p>
+        <ul>
+          <li>Create and maintain your account.</li>
+          <li>Authenticate your sign-in.</li>
+          <li>Store and display your coping skills, crisis toolkit, and reflections.</li>
+          <li>Enable features such as data export and account deletion.</li>
+          <li>Respond to support requests.</li>
+          <li>Maintain the security and reliability of the service.</li>
+          <li>Comply with applicable legal obligations.</li>
+        </ul>
+        <p>We do <strong>not</strong>:</p>
+        <ul>
+          <li>Sell your personal information.</li>
+          <li>Share your information for advertising or marketing purposes.</li>
+          <li>Use your information to train artificial intelligence or machine learning models.</li>
+          <li>Allow other users to view your information.</li>
+        </ul>
+        <h2>Service Providers</h2>
+        <p>We rely on a small number of trusted service providers to operate Anchor. These providers process information only as necessary to perform services on our behalf.</p>
+        <p>Our current providers include:</p>
+        <ul>
+          <li><strong>Supabase</strong>, which provides authentication and database services. Data is hosted on infrastructure located in the United States.</li>
+          <li><strong>Vercel</strong>, which hosts the application.</li>
+          <li><strong>Google</strong>, only if you choose to sign in using your Google account.</li>
+        </ul>
+        <p>These providers may themselves rely on infrastructure subcontractors, such as cloud hosting providers. Where applicable, we require our providers to process information only for the purpose of providing services to Anchor.</p>
+        <h2>How Information Is Stored</h2>
+        <p>Your data is stored in a PostgreSQL database hosted through Supabase in the United States.</p>
+        <p>We use technical safeguards designed to protect your information, including:</p>
+        <ul>
+          <li>Encryption of data in transit.</li>
+          <li>Authentication controls.</li>
+          <li>Database row-level security to isolate each user's data from other users.</li>
+          <li>Access controls designed to limit administrative access.</li>
+        </ul>
+        <p>Although we use reasonable safeguards, no method of transmitting information over the Internet or storing electronic information can be guaranteed to be completely secure. We therefore cannot guarantee absolute security.</p>
+        <h2>When Information May Be Shared</h2>
+        <p>We do not sell or publicly disclose your personal information.</p>
+        <p>Information may be shared only in the following circumstances:</p>
+        <ul>
+          <li>With service providers that process information on our behalf to operate Anchor.</li>
+          <li>If required to comply with applicable law, regulation, legal process, or lawful governmental request.</li>
+          <li>To protect the rights, safety, or security of Anchor, our users, or others.</li>
+          <li>If you choose to export or otherwise share your own information.</li>
+        </ul>
+        <h2>Data Retention</h2>
+        <p>We retain your information for as long as your account remains active.</p>
+        <p>If you delete your account, your information is removed from the production database. Deletion is intended to be permanent and cannot be undone.</p>
+        <p>At this time, we do not maintain a separate backup retention period beyond standard operational recovery mechanisms used to maintain service reliability. Those mechanisms are not intended to restore individual deleted accounts.</p>
+        <p>Limited technical records may be retained where reasonably necessary to comply with legal obligations, resolve disputes, prevent fraud, or protect the security of the service.</p>
+        <h2>Your Choices</h2>
+        <p>You can manage your information at any time through the <strong>Account &amp; Data</strong> section of the app.</p>
+        <p>You may:</p>
+        <ul>
+          <li>Export your data in JSON or CSV format.</li>
+          <li>Change your password.</li>
+          <li>Permanently delete your account and associated information.</li>
+        </ul>
+        <p>Deleting your account permanently removes your data as described in this Privacy Policy.</p>
+        <h2>Business Transfers</h2>
+        <p>If Anchor is involved in a merger, acquisition, financing, reorganization, bankruptcy, or sale of some or all of its assets, your information may be transferred as part of that transaction, subject to applicable law and this Privacy Policy or a successor policy.</p>
+        <h2>Children's Privacy</h2>
+        <p>Anchor is intended for users who are at least 13 years old.</p>
+        <p>We do not knowingly collect personal information from children under the age of 13. If we become aware that we have collected such information, we will take reasonable steps to delete it.</p>
+        <h2>International Users</h2>
+        <p>Anchor is operated from the United States, and your information will be processed and stored in the United States. If you access Anchor from another country, you understand that your information may be transferred to and processed in the United States, where privacy laws may differ from those in your jurisdiction.</p>
+        <h2>Safety Notice</h2>
+        <p>Anchor is a self-help and organizational tool. It is <strong>not</strong> a medical device, is <strong>not</strong> intended to provide medical, psychological, or clinical advice, and is <strong>not</strong> an emergency service.</p>
+        <p>Anchor does not actively monitor user content for signs of crisis, provide emergency intervention, or contact emergency services on your behalf.</p>
+        <p>If you believe you are experiencing a medical or mental health emergency, call your local emergency services immediately. In the United States and Canada, you can also contact the <strong>988 Suicide &amp; Crisis Lifeline</strong> by calling or texting <strong>988</strong>.</p>
+        <h2>Changes to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy from time to time.</p>
+        <p>If we make material changes, we will update the Effective Date above and provide notice within the app before or when the changes become effective where appropriate.</p>
+        <h2>Governing Law</h2>
+        <p>This Privacy Policy is governed by the laws of the Commonwealth of Massachusetts, without regard to its conflict-of-law principles.</p>
         <h2>Contact</h2>
-        <p>
-          Questions about your privacy? Reach out at
-          <a href="mailto:eesam1998@gmail.com">eesam1998@gmail.com</a>.
-        </p>
+        <p>If you have questions about this Privacy Policy or our privacy practices, please contact us at <a href="mailto:eesam1998@gmail.com"><strong>eesam1998@gmail.com</strong></a>.</p>
       </div>
 
       <p class="back"><a href="/">← Back to Anchor</a></p>

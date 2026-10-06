@@ -371,3 +371,19 @@ describe('bottom nav', () => {
     expect(tab('In Distress').className).toMatch(/bg-\[hsl\(10,76%,93%\)\]/)
   })
 })
+
+describe('legal pages', () => {
+  it('opens the privacy policy and terms inside the app from Account, with Account still current', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Account'))
+
+    await user.click(screen.getByRole('button', { name: 'Privacy Policy' }))
+    expect(screen.getByTitle('Privacy Policy')).toHaveAttribute('src', '/privacy.html')
+    expect(tab('Account')).toHaveAttribute('aria-current', 'page')
+
+    await user.click(screen.getByRole('button', { name: /Back/ }))
+    await user.click(screen.getByRole('button', { name: 'Terms of Service' }))
+    expect(screen.getByTitle('Terms of Service')).toHaveAttribute('src', '/terms.html')
+  })
+})
