@@ -518,7 +518,7 @@ describe('home tour', () => {
 
     expect(titles).toEqual([
       "Let's show you around",
-      'Start here',
+      'Tap the anchor when you need something',
       'In distress',
       'Calm down',
       'Slow the spiral',

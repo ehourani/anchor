@@ -22,8 +22,8 @@ export const tourSteps: TourStep[] = [
     body: 'A few key spots to know. Skip anytime.',
   },
   {
-    title: 'Start here',
-    body: 'Tap the anchor when you need something.',
+    title: 'Tap the anchor when you need something',
+    body: 'Four paths to the right anchor for now.',
     ring: 'wheel',
   },
   {
