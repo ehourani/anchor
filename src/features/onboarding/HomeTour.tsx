@@ -21,51 +21,51 @@ export type TourStep = {
 export const tourSteps: TourStep[] = [
   {
     title: 'A quick look around',
-    body: "Tap the anchor whenever you need something. It opens into four kinds of anchors. You can skip this anytime.",
+    body: 'Tap the anchor when you need something.',
     ring: 'wheel',
   },
   {
     title: 'In distress',
-    body: 'For the hardest moments. It takes you straight to your distress anchors, with support lines close by.',
+    body: 'For the hardest moments.',
     focus: 'crisis',
     wheelOpen: true,
   },
   {
     title: 'Calm down',
-    body: 'For when feelings run high and you want to soften them.',
+    body: 'For when feelings run high.',
     focus: 'emotion-regulation',
     wheelOpen: true,
   },
   {
     title: 'Slow the spiral',
-    body: 'For when your thoughts are racing. These anchors shift your focus for a bit.',
+    body: 'For when your thoughts are racing.',
     focus: 'distraction',
     wheelOpen: true,
   },
   {
     title: 'Build balance',
-    body: 'Small, steady things that build you up, often on calmer days.',
+    body: 'Small, steady things that build you up.',
     focus: 'life-building',
     wheelOpen: true,
   },
   {
     title: 'Always one tap away',
-    body: 'In Distress stays right here, wherever you are in Anchor, with your distress anchors and support lines.',
+    body: 'Your distress anchors and support lines.',
     ring: 'nav-distress',
   },
   {
     title: 'Reflect when you like',
-    body: 'After you use an anchor, tap Reflect to note it. Adding how it went is always optional.',
+    body: 'Note what you used. Always optional.',
     ring: 'nav-reflect',
   },
   {
     title: 'All your anchors',
-    body: 'My Anchors holds every anchor you have. Browse them, edit them, or add your own.',
+    body: 'Browse, edit, or add your own.',
     ring: 'nav-anchors',
   },
   {
     title: "You're ready",
-    body: "Take your time. Anchor is here whenever you need it.",
+    body: 'Anchor is here whenever you need it.',
   },
 ]
 
@@ -91,7 +91,7 @@ export function HomeTour({
       role="dialog"
       aria-modal="false"
       aria-labelledby="home-tour-title"
-      className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-[0_12px_32px_-12px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md"
+      className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3 shadow-[0_12px_32px_-12px_hsl(200_50%_40%_/_0.3)] backdrop-blur-md"
     >
       {/* Every step's text shares one grid cell, so the card is always as
           tall as the longest step and nothing below it shifts between steps.
@@ -105,33 +105,35 @@ export function HomeTour({
               i === step ? 'opacity-100' : 'invisible opacity-0'
             }`}
           >
-            <p className="text-xs font-medium text-foreground/40">
-              {i + 1} of {tourSteps.length}
-            </p>
-            <h2
-              id={i === step ? 'home-tour-title' : undefined}
-              className="mt-0.5 font-display text-base font-semibold text-foreground"
-            >
-              {s.title}
-            </h2>
-            <p className="mt-1 text-sm leading-relaxed text-foreground/65">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2
+                id={i === step ? 'home-tour-title' : undefined}
+                className="font-display text-base font-semibold text-foreground"
+              >
+                {s.title}
+              </h2>
+              <span className="shrink-0 text-xs font-medium text-foreground/40">
+                {i + 1} of {tourSteps.length}
+              </span>
+            </div>
+            <p className="mt-0.5 text-sm leading-snug text-foreground/65">
               {s.body}
             </p>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-end gap-2">
+      <div className="mt-2 flex items-center justify-end gap-1.5">
         {!isLast && (
           <button
             onClick={onSkip}
-            className="rounded-full px-3.5 py-2 text-sm font-semibold text-foreground/55 transition-colors hover:bg-foreground/5 hover:text-foreground"
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-foreground/55 transition-colors hover:bg-foreground/5 hover:text-foreground"
           >
             Skip tour
           </button>
         )}
         <button
           onClick={onNext}
-          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
         >
           {isLast ? 'Get started' : 'Next'}
         </button>

@@ -74,10 +74,13 @@ export function SituationWheel({
         {/* Tour ring — drawn in the buoy's own SVG, so it rides along with
             it (breathing included) and needs no measuring. */}
         {ringed && (
-          <g fill="none" pointerEvents="none">
-            <circle r={R + 8} stroke="hsl(195 70% 60% / 0.18)" strokeWidth={10} />
-            <circle r={R + 8} stroke="hsl(var(--primary) / 0.7)" strokeWidth={2.5} />
-          </g>
+          <circle
+            r={R + 16}
+            fill="hsl(var(--primary) / 0.16)"
+            stroke="hsl(var(--primary) / 0.7)"
+            strokeWidth={2.5}
+            pointerEvents="none"
+          />
         )}
         {situations.map((s, i) => {
           const fill = expanded
