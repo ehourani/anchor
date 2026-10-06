@@ -11,6 +11,7 @@ import { HomeScreen } from './HomeScreen'
 // fixtures; the Supabase client itself is a throwing guard (src/test/setup.ts).
 const state = vi.hoisted(() => ({ skills: [] as Skill[] }))
 const logger = vi.hoisted(() => ({ startLog: vi.fn(), saveReflection: vi.fn() }))
+const creator = vi.hoisted(() => ({ mutateAsync: vi.fn() }))
 
 vi.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({
@@ -29,6 +30,9 @@ vi.mock('@/features/history/useUsageLogs', async (importOriginal) => ({
 }))
 vi.mock('@/features/logging/useUsageLogger', () => ({
   useUsageLogger: () => logger,
+}))
+vi.mock('./useCreateSkill', () => ({
+  useCreateSkill: () => creator,
 }))
 
 const grounding = makeSkill({
@@ -101,6 +105,7 @@ beforeEach(() => {
   state.skills = [walk, coldWater, boxBreathing, grounding]
   logger.startLog.mockClear()
   logger.saveReflection.mockClear()
+  creator.mutateAsync.mockReset()
 })
 
 describe('find → open → log', () => {
@@ -244,7 +249,7 @@ describe("Today's Skill", () => {
 })
 
 describe('Reflect', () => {
-  it('searches anchors by title and offers to add one when nothing matches', async () => {
+  it('searches anchors by title and offers a new anchor when nothing matches', async () => {
     const user = userEvent.setup()
     renderHome()
 
@@ -263,8 +268,87 @@ describe('Reflect', () => {
     await user.clear(search)
     await user.type(search, 'zzz')
     expect(options()).toEqual([])
-    await user.click(within(sheet).getByRole('button', { name: 'Add a new anchor' }))
-    expect(screen.getByRole('dialog', { name: 'Add an Anchor' })).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'I used a new anchor' }))
+    // The form opens inside the log sheet, named from the search.
+    expect(within(sheet).getByRole('heading', { name: 'Add the anchor you used' })).toBeInTheDocument()
+    expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveValue('zzz')
+  })
+
+  // Fills the required fields of the in-sheet new-anchor form.
+  async function fillNewAnchor(user: ReturnType<typeof userEvent.setup>, sheet: HTMLElement) {
+    await user.type(within(sheet).getByRole('textbox', { name: 'Name' }), 'Hum a song')
+    await user.click(within(sheet).getByRole('button', { name: 'Calm down' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Low Effort' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Anywhere' }))
+  }
+
+  it('creates a new anchor and logs it against the real id, then offers a reflection', async () => {
+    creator.mutateAsync.mockResolvedValue('real-skill-id')
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+
+    // Reachable without searching first.
+    await user.click(within(sheet).getByRole('button', { name: 'I used a new anchor' }))
+    const save = within(sheet).getByRole('button', { name: 'Save and log' })
+    expect(save).toBeDisabled()
+    await fillNewAnchor(user, sheet)
+    await user.click(save)
+
+    expect(creator.mutateAsync).toHaveBeenCalledWith({
+      title: 'Hum a song',
+      description: '',
+      tags: [
+        { category: 'situation', label: 'emotion-regulation' },
+        { category: 'effort', label: 'low' },
+        { category: 'setting', label: 'anywhere' },
+      ],
+    })
+    expect(logger.startLog).toHaveBeenCalledTimes(1)
+    expect(logger.startLog).toHaveBeenCalledWith('real-skill-id')
+    expect(within(sheet).getByRole('heading', { name: 'Hum a song' })).toBeInTheDocument()
+    expect(within(sheet).getByText('Logged ✔️')).toBeInTheDocument()
+    expect(within(sheet).getByText(/Want to add a reflection\?/)).toBeInTheDocument()
+
+    // The reflection stays optional: Done closes without one.
+    await user.click(within(sheet).getByRole('button', { name: 'Done' }))
+    expect(logger.saveReflection).not.toHaveBeenCalled()
+  })
+
+  it('creates and logs nothing when the new anchor is cancelled', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+
+    await user.click(within(sheet).getByRole('button', { name: 'I used a new anchor' }))
+    await fillNewAnchor(user, sheet)
+    await user.click(within(sheet).getByRole('button', { name: 'Cancel' }))
+
+    // Back on the picker.
+    expect(within(sheet).getByRole('heading', { name: 'Which anchor did you use?' })).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Box breathing' })).toBeInTheDocument()
+    expect(creator.mutateAsync).not.toHaveBeenCalled()
+    expect(logger.startLog).not.toHaveBeenCalled()
+  })
+
+  it('logs nothing and stays on the form when the create fails', async () => {
+    creator.mutateAsync.mockRejectedValue(new Error('network down'))
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const user = userEvent.setup()
+    renderHome()
+    await user.click(tab('Reflect'))
+    const sheet = screen.getByRole('dialog', { name: 'Log an anchor you used' })
+
+    await user.click(within(sheet).getByRole('button', { name: 'I used a new anchor' }))
+    await fillNewAnchor(user, sheet)
+    await user.click(within(sheet).getByRole('button', { name: 'Save and log' }))
+
+    expect(await within(sheet).findByText(/couldn't save that just now/)).toBeInTheDocument()
+    expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveValue('Hum a song')
+    expect(logger.startLog).not.toHaveBeenCalled()
+    quiet.mockRestore()
   })
 
   it('clears the search', async () => {

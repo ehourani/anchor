@@ -529,7 +529,7 @@ export function HomeScreen() {
         onClose={() => setLogOpen(false)}
         skills={skills}
         onViewReflections={() => navTop({ k: 'all-logs' })}
-        onAddNew={() => setAddOpen(true)}
+        onCreateSkill={(draft) => createSkill.mutateAsync(draft)}
       />
       <SkillSheet
         open={addOpen || editSkill !== null}

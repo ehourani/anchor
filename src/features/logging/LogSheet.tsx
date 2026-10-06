@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronRight, Plus, ScrollText, Search, X } from 'lucide-react'
 
 import type { Skill } from '@/features/skills/sampleSkills'
+import type { NewSkillDraft } from '@/features/skills/skills'
+import { SkillForm } from '@/features/skills/SkillForm'
 import { useSkillUsageStats } from '@/features/history/useSkillUsageStats'
 import { type Helpfulness } from './logging'
 import { useUsageLogger } from './useUsageLogger'
@@ -9,21 +11,30 @@ import { LogReflection } from './LogReflection'
 
 // Quick "I used an anchor" sheet, opened from the Reflect tab. Search or pick
 // an anchor → it logs instantly → optional, skippable reflection. Past
-// reflections are one tap away from the picker.
+// reflections are one tap away from the picker. "I used a new anchor" swaps in
+// the anchor form: saving adds it to the toolkit and logs the use in one go.
 export function LogSheet({
   open,
   onClose,
   skills,
   onViewReflections,
-  onAddNew,
+  onCreateSkill,
 }: {
   open: boolean
   onClose: () => void
   skills: Skill[]
   onViewReflections: () => void
-  onAddNew: () => void
+  // Inserts the skill and resolves to its real id (never the optimistic one).
+  onCreateSkill: (draft: NewSkillDraft) => Promise<string>
 }) {
-  const [skillId, setSkillId] = useState<string | null>(null)
+  const [step, setStep] = useState<'pick' | 'new' | 'logged'>('pick')
+  // Held directly rather than looked up from `skills`: a just-created anchor
+  // isn't in the list under its real id until the refetch lands.
+  const [loggedTitle, setLoggedTitle] = useState('')
+  const [isNewAnchor, setIsNewAnchor] = useState(false)
+  // Bumped on every open, so a create that resolves after the sheet was closed
+  // (or reopened) still logs but doesn't yank the UI.
+  const sessionRef = useRef(0)
   const [query, setQuery] = useState('')
   const [helpfulness, setHelpfulness] = useState<Helpfulness | null>(null)
   const [note, setNote] = useState('')
@@ -52,7 +63,10 @@ export function LogSheet({
   // Fresh start each time the sheet opens.
   useEffect(() => {
     if (open) {
-      setSkillId(null)
+      sessionRef.current += 1
+      setStep('pick')
+      setLoggedTitle('')
+      setIsNewAnchor(false)
       setQuery('')
       setHelpfulness(null)
       setNote('')
@@ -66,14 +80,26 @@ export function LogSheet({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const selected = skills.find((s) => s.id === skillId) ?? null
-
-  const pick = (id: string) => {
-    setSkillId(id)
-    startLog(id)
+  const pick = (s: Skill) => {
+    setLoggedTitle(s.title)
+    setIsNewAnchor(false)
+    setStep('logged')
+    startLog(s.id)
   }
 
-  // Close this sheet, then hand off (to history, or to the Add an Anchor sheet).
+  // Wait for the insert so the log's FK points at the real skill row; a failed
+  // create throws back to the form (gentle error) and logs nothing.
+  const createAndLog = async (draft: NewSkillDraft) => {
+    const session = sessionRef.current
+    const id = await onCreateSkill(draft)
+    startLog(id)
+    if (session !== sessionRef.current) return
+    setLoggedTitle(draft.title.trim())
+    setIsNewAnchor(true)
+    setStep('logged')
+  }
+
+  // Close this sheet, then hand off to history.
   const leaveTo = (fn: () => void) => () => {
     onClose()
     fn()
@@ -82,7 +108,7 @@ export function LogSheet({
   const saveReflection = (h: Helpfulness | null, n: string) => {
     setHelpfulness(h)
     setNote(n)
-    if (skillId) persistReflection(h, n)
+    if (step === 'logged') persistReflection(h, n)
   }
 
   return (
@@ -107,7 +133,11 @@ export function LogSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              {selected ? selected.title : 'Which anchor did you use?'}
+              {step === 'logged'
+                ? loggedTitle
+                : step === 'new'
+                  ? 'Add the anchor you used'
+                  : 'Which anchor did you use?'}
             </h2>
             <button
               onClick={onClose}
@@ -117,7 +147,7 @@ export function LogSheet({
               <X className="size-5" />
             </button>
           </div>
-          {!selected && (
+          {step === 'pick' && (
             <div className="relative mt-3">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
               <input
@@ -141,63 +171,88 @@ export function LogSheet({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-3">
-          {selected ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
-                <Check className="size-5" />
-                <span className="font-semibold">Logged ✔️</span>
-              </div>
-              <LogReflection
-                helpfulness={helpfulness}
-                note={note}
-                onChange={saveReflection}
-              />
-              <button
-                onClick={onClose}
-                className="w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-              >
-                Done
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {results.length === 0 && needle && (
-                <div className="rounded-2xl border border-white/70 bg-white/60 p-5 text-center">
-                  <p className="text-sm text-foreground/60">
-                    No anchors match “{query.trim()}”.
-                  </p>
-                  <button
-                    onClick={leaveTo(onAddNew)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-                  >
-                    <Plus className="size-4" />
-                    Add a new anchor
-                  </button>
+        {step === 'new' ? (
+          <SkillForm
+            initialTitle={query.trim()}
+            onSubmit={createAndLog}
+            onCancel={() => setStep('pick')}
+            submitLabel="Save and log"
+            savingLabel="Saving…"
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-3">
+            {step === 'logged' ? (
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-primary/10 p-4 text-primary">
+                  <div className="flex items-center gap-2">
+                    <Check className="size-5" />
+                    <span className="font-semibold">Logged ✔️</span>
+                  </div>
+                  {isNewAnchor && (
+                    <p className="mt-1 pl-7 text-sm text-primary/80">
+                      It's in your anchors now, too.
+                    </p>
+                  )}
                 </div>
-              )}
-              {results.map((s) => (
+                <LogReflection
+                  helpfulness={helpfulness}
+                  note={note}
+                  onChange={saveReflection}
+                />
                 <button
-                  key={s.id}
-                  onClick={() => pick(s.id)}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/70 p-4 text-left transition-colors hover:bg-white"
+                  onClick={onClose}
+                  className="w-full rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                 >
-                  <span className="font-semibold text-foreground">
-                    {s.title}
-                  </span>
-                  <ChevronRight className="size-5 shrink-0 text-foreground/40" />
+                  Done
                 </button>
-              ))}
-              <button
-                onClick={leaveTo(onViewReflections)}
-                className="mx-auto mt-3 flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-foreground/55 transition-colors hover:bg-white/60 hover:text-foreground"
-              >
-                <ScrollText className="size-4" />
-                See past reflections
-              </button>
-            </div>
-          )}
-        </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {results.length === 0 && needle ? (
+                  <div className="rounded-2xl border border-white/70 bg-white/60 p-5 text-center">
+                    <p className="text-sm text-foreground/60">
+                      No anchors match “{query.trim()}”.
+                    </p>
+                    <button
+                      onClick={() => setStep('new')}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                    >
+                      <Plus className="size-4" />
+                      I used a new anchor
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setStep('new')}
+                    className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-primary/35 p-4 text-left font-semibold text-primary transition-colors hover:bg-primary/5"
+                  >
+                    <Plus className="size-5 shrink-0" />
+                    I used a new anchor
+                  </button>
+                )}
+                {results.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => pick(s)}
+                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/70 p-4 text-left transition-colors hover:bg-white"
+                  >
+                    <span className="font-semibold text-foreground">
+                      {s.title}
+                    </span>
+                    <ChevronRight className="size-5 shrink-0 text-foreground/40" />
+                  </button>
+                ))}
+                <button
+                  onClick={leaveTo(onViewReflections)}
+                  className="mx-auto mt-3 flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-foreground/55 transition-colors hover:bg-white/60 hover:text-foreground"
+                >
+                  <ScrollText className="size-4" />
+                  See past reflections
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   )

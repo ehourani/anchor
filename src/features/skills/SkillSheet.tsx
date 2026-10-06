@@ -1,38 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronDown, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
-import type { Skill, Tag, TagCategory } from './sampleSkills'
+import type { Skill } from './sampleSkills'
 import type { NewSkillDraft } from './skills'
-import { categoryStyles } from './TagChip'
-import { tagVocabulary, type CategoryMeta } from './tagVocabulary'
-
-type Selection = Record<TagCategory, string[]>
-
-function emptySelection(defaultSituation: string | null): Selection {
-  return {
-    situation: defaultSituation ? [defaultSituation] : [],
-    effort: [],
-    setting: [],
-    senses: [],
-    modality: [],
-  }
-}
-
-// An existing skill's tags, grouped back into the picker's selection shape.
-// Skill.tags carry the slug as their label, which is exactly what the option
-// buttons key on, so the grouping lines up without any remapping.
-// Senses and approach are optional extras, tucked behind a collapsed section
-// so the required fields stay front and center.
-const isOptionalCategory = (c: CategoryMeta) => !c.required
-const hasOptionalTags = (skill: Skill | null) =>
-  !!skill?.tags.some((t) => t.category === 'senses' || t.category === 'modality')
-
-function selectionFromSkill(skill: Skill): Selection {
-  const sel = emptySelection(null)
-  for (const t of skill.tags) sel[t.category] = [...sel[t.category], t.label]
-  return sel
-}
+import { SkillForm } from './SkillForm'
 
 // One sheet for both adding and editing a skill. Pass `skill` to edit (the form
 // pre-fills and the copy shifts to an edit voice); omit it to add. `onSubmit`
@@ -51,28 +22,16 @@ export function SkillSheet({
   skill?: Skill | null
 }) {
   const isEdit = skill !== null
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [selected, setSelected] = useState<Selection>(emptySelection(null))
-  const [done, setDone] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [moreOpen, setMoreOpen] = useState(false)
+  const [done, setDone] = useState<string | null>(null)
+  // Bumped on each open so the form remounts fresh (pre-filled from the skill
+  // when editing, else blank with the situation we came from). Keyed on the
+  // skill id (not the object) so a background refetch can't reset it mid-edit.
+  const [formKey, setFormKey] = useState(0)
 
-  // Fresh form each open: pre-fill from the skill when editing, otherwise blank
-  // with the situation we came from. Keyed on the skill id (not the object) so a
-  // background refetch can't reset the form mid-edit.
   useEffect(() => {
     if (!open) return
-    setTitle(skill?.title ?? '')
-    setDescription(skill?.description ?? '')
-    setSelected(skill ? selectionFromSkill(skill) : emptySelection(defaultSituation))
-    setDone(false)
-    setSaving(false)
-    setError(null)
-    // Open the extras when editing an anchor that already uses them.
-    setMoreOpen(hasOptionalTags(skill))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setDone(null)
+    setFormKey((k) => k + 1)
   }, [open, skill?.id, defaultSituation])
 
   useEffect(() => {
@@ -82,82 +41,11 @@ export function SkillSheet({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const toggle = (category: TagCategory, label: string, multi: boolean) => {
-    setSelected((prev) => {
-      const current = prev[category]
-      if (multi) {
-        return {
-          ...prev,
-          [category]: current.includes(label)
-            ? current.filter((l) => l !== label)
-            : [...current, label],
-        }
-      }
-      // single-select (effort): tapping the active option clears it
-      return { ...prev, [category]: current.includes(label) ? [] : [label] }
-    })
+  const submit = async (draft: NewSkillDraft) => {
+    await onSubmit(draft)
+    // Only celebrate once the write actually landed.
+    setDone(draft.title.trim())
   }
-
-  // situation + effort + setting are required (see migration 0003).
-  const valid =
-    title.trim().length > 0 &&
-    selected.situation.length > 0 &&
-    selected.effort.length === 1 &&
-    selected.setting.length > 0
-
-  const submit = async () => {
-    if (!valid || saving) return
-    const tags: Tag[] = tagVocabulary.flatMap((c) =>
-      selected[c.category].map((label) => ({ category: c.category, label })),
-    )
-    setError(null)
-    setSaving(true)
-    try {
-      await onSubmit({ title, description, tags })
-      // Only celebrate once the write actually landed.
-      setDone(true)
-    } catch (err) {
-      // Gentle for the user; full detail in the console for debugging.
-      console.error(isEdit ? 'Failed to save skill:' : 'Failed to add skill:', err)
-      setError("We couldn't save that just now. Please try again.")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  // One tag category: its label (with "pick one" for effort) and icon chips.
-  // Optional categories render inside the "(optional)" section above.
-  const renderCategory = (cat: CategoryMeta) => (
-    <div key={cat.category}>
-      <p className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-        {cat.label}{' '}
-        {!cat.multi && (
-          <span className="normal-case text-foreground/35">(pick one)</span>
-        )}
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {cat.options.map((opt) => {
-          const sel = selected[cat.category].includes(opt.slug)
-          return (
-            <button
-              key={opt.slug}
-              onClick={() => toggle(cat.category, opt.slug, cat.multi)}
-              aria-pressed={sel}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors',
-                sel
-                  ? cn(categoryStyles[cat.category], 'border-transparent')
-                  : 'border-border bg-white/55 text-foreground/55 hover:bg-white/80',
-              )}
-            >
-              <opt.Icon className="size-4" aria-hidden="true" />
-              {opt.label}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
 
   return (
     <>
@@ -181,7 +69,7 @@ export function SkillSheet({
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-foreground/15" />
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-foreground">
-              {done
+              {done !== null
                 ? isEdit
                   ? 'Saved'
                   : 'Added to your toolkit'
@@ -199,14 +87,14 @@ export function SkillSheet({
           </div>
         </div>
 
-        {done ? (
+        {done !== null ? (
           <div className="px-6 pb-8 pt-4">
             <div className="flex items-center gap-2 rounded-2xl bg-primary/10 p-4 text-primary">
               <Check className="size-5" />
               <span className="font-semibold">
                 {isEdit
-                  ? `“${title.trim()}” is updated.`
-                  : `“${title.trim()}” is in your toolkit now.`}
+                  ? `“${done}” is updated.`
+                  : `“${done}” is in your toolkit now.`}
               </span>
             </div>
             <button
@@ -217,92 +105,14 @@ export function SkillSheet({
             </button>
           </div>
         ) : (
-          <>
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-4 pt-2">
-              <div>
-                <label className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                  Name
-                </label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Name this anchor"
-                  className="mt-1.5 w-full rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium uppercase tracking-wide text-foreground/40">
-                  Description{' '}
-                  <span className="normal-case text-foreground/35">
-                    (optional)
-                  </span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What is it, and how do you do it?"
-                  rows={3}
-                  className="mt-1.5 w-full resize-none rounded-xl border border-border bg-white/70 p-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-
-              {tagVocabulary
-                .filter((cat) => !isOptionalCategory(cat))
-                .map(renderCategory)}
-
-              <div className="rounded-2xl border border-border/70 bg-white/40">
-                <button
-                  onClick={() => setMoreOpen((o) => !o)}
-                  aria-expanded={moreOpen}
-                  aria-controls="skill-sheet-extras"
-                  className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-foreground/70"
-                >
-                  <span>
-                    Additional info{' '}
-                    <span className="font-normal text-foreground/40">(optional)</span>
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      'size-4 shrink-0 text-foreground/45 transition-transform duration-200',
-                      moreOpen && 'rotate-180',
-                    )}
-                  />
-                </button>
-                {moreOpen && (
-                  <div id="skill-sheet-extras" className="space-y-5 px-4 pb-4">
-                    {tagVocabulary.filter(isOptionalCategory).map(renderCategory)}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="shrink-0 border-t border-border/60 px-6 pb-6 pt-3">
-              {error && (
-                <p className="mb-3 rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-                  {error}
-                </p>
-              )}
-              <button
-                onClick={submit}
-                disabled={!valid || saving}
-                className={cn(
-                  'w-full rounded-2xl py-3.5 font-semibold transition-colors',
-                  valid && !saving
-                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
-                    : 'cursor-not-allowed bg-primary/30 text-primary-foreground/70',
-                )}
-              >
-                {saving
-                  ? isEdit
-                    ? 'Saving…'
-                    : 'Adding…'
-                  : isEdit
-                    ? 'Save changes'
-                    : 'Add anchor'}
-              </button>
-            </div>
-          </>
+          <SkillForm
+            key={formKey}
+            skill={skill}
+            defaultSituation={defaultSituation}
+            onSubmit={submit}
+            submitLabel={isEdit ? 'Save changes' : 'Add anchor'}
+            savingLabel={isEdit ? 'Saving…' : 'Adding…'}
+          />
         )}
       </div>
     </>
