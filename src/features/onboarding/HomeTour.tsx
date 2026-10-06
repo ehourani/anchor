@@ -6,8 +6,7 @@
 
 export type TourStep = {
   title: string
-  // Optional: a title-only step (the intro) centers in the card instead.
-  body?: string
+  body: string
   // What to circle with a soft ring: the whole buoy, or a nav item.
   ring?: 'wheel' | 'nav-anchors' | 'nav-distress' | 'nav-reflect'
   // A wheel segment to spotlight (the others fade back).
@@ -20,6 +19,7 @@ export type TourStep = {
 export const tourSteps: TourStep[] = [
   {
     title: "Let's show you around",
+    body: 'A few key spots to know. Skip anytime.',
   },
   {
     title: 'Start here',
@@ -97,7 +97,7 @@ export function HomeTour({
           <div
             key={s.title}
             aria-hidden={i !== step}
-            className={`col-start-1 row-start-1 ${s.body ? '' : 'self-center'} transition-opacity duration-300 motion-reduce:transition-none ${
+            className={`col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none ${
               i === step ? 'opacity-100' : 'invisible opacity-0'
             }`}
           >
@@ -107,11 +107,9 @@ export function HomeTour({
             >
               {s.title}
             </h2>
-            {s.body && (
-              <p className="mt-0.5 text-sm leading-snug text-foreground/65">
-                {s.body}
-              </p>
-            )}
+            <p className="mt-0.5 text-sm leading-snug text-foreground/65">
+              {s.body}
+            </p>
           </div>
         ))}
       </div>
