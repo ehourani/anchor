@@ -62,9 +62,10 @@ function Reveal({
 }
 
 // The slower welcome/greeting/finish rhythm: each piece fades in over 1s, with
-// a 0.5s pause before the next (so they start at 0s, 1.5s, 3s, …).
+// a 0.25s pause before the next (so they start at 0s, 1.25s, 2.5s, …).
 const SLOW_FADE = 1
-const slowBeat = (i: number) => i * (SLOW_FADE + 0.5)
+const SLOW_PAUSE = 0.25
+const slowBeat = (i: number) => i * (SLOW_FADE + SLOW_PAUSE)
 
 // Large, centered brand mark for the welcome, name, and explainer steps.
 function AnchorLogo() {
