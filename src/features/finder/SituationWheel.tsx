@@ -181,7 +181,7 @@ export function SituationWheel({
           className="pointer-events-none absolute inset-0 size-full overflow-visible"
         >
           <circle
-            r={R + 12}
+            r={R + 16}
             fill="hsl(var(--primary) / 0.16)"
             stroke="hsl(var(--primary) / 0.7)"
             strokeWidth={2.5}
