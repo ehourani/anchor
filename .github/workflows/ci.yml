@@ -15,7 +15,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - name: Install
+        shell: bash
+        run: |
+          set -o pipefail
+          npm ci 2>&1 | tee npm-ci.log
+      # Surface npm's error lines as annotations, readable without log access.
+      - name: Report install errors
+        if: failure()
+        shell: bash
+        run: grep -iE "npm (err|error)" npm-ci.log | head -40 | sed 's/^/::error::/' || true
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
