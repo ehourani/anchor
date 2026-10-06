@@ -182,9 +182,9 @@ export function SituationWheel({
         >
           <circle
             r={R + 20}
-            fill="hsl(48 100% 75% / 0.14)"
-            stroke="hsl(44 80% 60% / 0.75)"
-            strokeWidth={2}
+            fill="hsl(var(--primary) / 0.16)"
+            stroke="hsl(var(--primary) / 0.7)"
+            strokeWidth={2.5}
           />
         </svg>
       )}

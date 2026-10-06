@@ -96,7 +96,8 @@ function NavItem({
   tone?: 'neutral' | 'distress'
   // Circled by the home tour while it points this item out.
   ringed?: boolean
-  // Held still during the home tour (every item but In Distress).
+  // Held still during the home tour (every item but In Distress). Not dimmed:
+  // the tour is pointing at these, so they need to stay easy to see.
   disabled?: boolean
   onClick: () => void
 }) {
@@ -107,9 +108,9 @@ function NavItem({
       aria-current={current ? 'page' : undefined}
       className={`${
         ringed
-          ? 'bg-[hsl(48_100%_75%/0.14)] shadow-[0_0_0_2px_hsl(44_80%_60%/0.75)]'
+          ? 'shadow-[0_0_0_2px_hsl(var(--primary)/0.7),0_0_0_7px_hsl(195_70%_60%/0.18)]'
           : ''
-      } ${disabled ? 'opacity-40' : ''} flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
+      } flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
         // No hover styles: on touch screens hover "sticks" after a tap, which
         // would make the item you just left look selected.
         tone === 'distress'
