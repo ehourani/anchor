@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Anchor } from 'lucide-react'
+import { Anchor, ChevronLeft } from 'lucide-react'
 
 import { OceanBackdrop } from '@/components/OceanBackdrop'
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from './auth'
@@ -33,8 +33,16 @@ function GoogleMark() {
   )
 }
 
-export function AuthScreen() {
-  const [mode, setMode] = useState<Mode>('signin')
+export function AuthScreen({
+  initialMode = 'signin',
+  onBack,
+}: {
+  initialMode?: Mode
+  // Back to the landing page; omitted where there's nothing to go back to
+  // (the installed app opens straight to sign-in).
+  onBack?: () => void
+} = {}) {
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -90,6 +98,17 @@ export function AuthScreen() {
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 py-10">
       <OceanBackdrop />
+
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="absolute left-5 top-[calc(1.5rem+env(safe-area-inset-top))] flex items-center gap-1 rounded-full bg-white/55 py-1.5 pl-2 pr-3.5 text-sm font-medium text-foreground/75 backdrop-blur-sm transition-colors hover:bg-white/85 hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+          Back
+        </button>
+      )}
 
       <div className="animate-fade-rise w-full max-w-sm">
         {/* Brand */}
