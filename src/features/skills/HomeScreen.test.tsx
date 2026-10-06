@@ -517,7 +517,8 @@ describe('home tour', () => {
     }
 
     expect(titles).toEqual([
-      'A quick look around',
+      "Let's show you around",
+      'Start here',
       'In distress',
       'Calm down',
       'Slow the spiral',
@@ -534,7 +535,8 @@ describe('home tour', () => {
     state.meta = { toured: false }
     const user = userEvent.setup()
     renderHome()
-    // Tapping the anchor itself moves the tour on, opening the wheel.
+    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    // On the buoy step, tapping the anchor itself moves the tour on, opening the wheel.
     await user.click(screen.getByLabelText('Find an anchor'))
     expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
     const wedge = (label: string) => document.querySelector(`path[aria-label="${label}"]`)
@@ -561,7 +563,11 @@ describe('home tour', () => {
     expect(bottomDistressButton()).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Anchor — go home' })).toBeDisabled()
 
-    // The buoy itself is the one live control on the first step…
+    // The intro step holds the buoy still too…
+    await user.click(screen.getByLabelText('Find an anchor'))
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent("Let's show you around")
+    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    // …the buoy is the one live control on its own step…
     await user.click(screen.getByLabelText('Find an anchor'))
     expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
     // …after that the wheel holds still: no leaving via a category.
@@ -575,8 +581,9 @@ describe('home tour', () => {
     state.meta = { toured: false }
     const user = userEvent.setup()
     renderHome()
-    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
-    await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    for (let i = 0; i < 3; i++) {
+      await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
+    }
     expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('Calm down')
 
     await user.click(bottomDistressButton())

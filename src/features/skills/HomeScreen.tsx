@@ -187,9 +187,10 @@ export function HomeScreen() {
     setTourStep(n)
   }
   // While the tour is up, home's controls hold still so it can't be left by
-  // accident (the buoy itself stays tappable on the first step). In Distress
+  // accident (the buoy itself stays tappable on its own step). In Distress
   // is never gated: it pauses the tour, which picks up where it was on return.
   const tourLocks = tourStep !== null && isHome
+  const onBuoyStep = tourStep !== null && tourSteps[tourStep].ring === 'wheel'
   useEffect(() => {
     if (tourLocks && tourSteps[tourStep].wheelOpen) setExpanded(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -515,10 +516,10 @@ export function HomeScreen() {
                     expanded={expanded}
                     focusKey={tourStep !== null ? tourSteps[tourStep].focus ?? null : null}
                     ringed={tourStep !== null && tourSteps[tourStep].ring === 'wheel'}
-                    locked={tourLocks && tourStep !== 0}
+                    locked={tourLocks && !onBuoyStep}
                     onToggle={() => {
-                      // Tapping the anchor on the tour's first step is its "Next".
-                      if (tourStep === 0 && !expanded) return nextTourStep()
+                      // Tapping the anchor on the tour's buoy step is its "Next".
+                      if (onBuoyStep && !expanded) return nextTourStep()
                       setExpanded((e) => !e)
                     }}
                     onSelect={(key) => {

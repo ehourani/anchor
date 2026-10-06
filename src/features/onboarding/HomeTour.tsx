@@ -18,7 +18,11 @@ export type TourStep = {
 // Draft copy — the owner's call.
 export const tourSteps: TourStep[] = [
   {
-    title: 'A quick look around',
+    title: "Let's show you around",
+    body: 'A few quick stops. Skip anytime.',
+  },
+  {
+    title: 'Start here',
     body: 'Tap the anchor when you need something.',
     ring: 'wheel',
   },
