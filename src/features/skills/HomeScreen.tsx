@@ -93,16 +93,26 @@ function NavItem({
     <button
       onClick={onClick}
       aria-current={current ? 'page' : undefined}
-      className={`flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
+      className={`relative isolate flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 px-1.5 pb-1.5 pt-2 text-[0.68rem] font-semibold leading-tight transition-colors ${
         // No hover styles: on touch screens hover "sticks" after a tap, which
         // would make the item you just left look selected.
         tone === 'distress'
-          ? `text-[hsl(8,52%,46%)] ${current ? 'bg-[hsl(10,76%,93%)]' : ''}`
+          ? 'text-[hsl(8,52%,46%)]'
           : current
-            ? 'bg-primary/10 text-primary'
+            ? 'text-primary'
             : 'text-foreground/60'
       }`}
     >
+      {/* The highlight is a fixed-width pill centered behind the item, so
+          short labels (Home, Account) get the same size as long ones. */}
+      {current && (
+        <span
+          aria-hidden="true"
+          className={`absolute inset-y-0 left-1/2 -z-10 w-[4.25rem] -translate-x-1/2 rounded-2xl ${
+            tone === 'distress' ? 'bg-[hsl(10,76%,93%)]' : 'bg-primary/10'
+          }`}
+        />
+      )}
       <Icon className="size-6 shrink-0" strokeWidth={tone === 'distress' ? 1.9 : 1.75} />
       <span className="whitespace-nowrap">{label}</span>
       <span
