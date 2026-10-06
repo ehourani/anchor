@@ -274,7 +274,8 @@ export function OnboardingFlow() {
                   Welcome to Anchor
                 </p>
               </Reveal>
-              <Reveal delay={slowBeat(2)} duration={SLOW_FADE}>
+              {/* A longer 0.5s breath before the body, on this screen only. */}
+              <Reveal delay={slowBeat(1) + SLOW_FADE + 0.5} duration={SLOW_FADE}>
                 <p className="mt-8 text-[0.97rem] leading-relaxed text-foreground/65">
                   Let's take a minute to set up your coping skill toolkit
                   together. You can change anything later.
