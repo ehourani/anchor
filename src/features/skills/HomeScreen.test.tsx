@@ -526,7 +526,7 @@ describe('home tour', () => {
       'Always one tap away',
       'Reflect when you like',
       'All your anchors',
-      "You're ready",
+      "You're ready!",
     ])
     expect(tour.completeTour).toHaveBeenCalledTimes(1)
   })

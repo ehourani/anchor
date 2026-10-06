@@ -66,7 +66,7 @@ export const tourSteps: TourStep[] = [
     ring: 'nav-anchors',
   },
   {
-    title: "You're ready",
+    title: "You're ready!",
     body: 'Anchor is here whenever you need it.',
   },
 ]
