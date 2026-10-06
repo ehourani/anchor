@@ -436,14 +436,17 @@ export function HomeScreen() {
           ) : (
             /* Home — greeting section, then the anchor section */
             <>
-              {/* Section 1 — greeting, gentle reminder, Today's Skill. The
-                  tour, while it runs, takes this spot instead. */}
-              {tourStep !== null ? (
-                <section className="mt-3 shrink-0">
-                  <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
-                </section>
-              ) : (
-                <section className="mt-3 shrink-0">
+              {/* Section 1 — greeting, gentle reminder, Today's Skill. While
+                  the tour runs, its card is laid over this spot and the
+                  greeting is hidden but keeps its space, so the buoy sits
+                  exactly where it will be once the tour ends (no jump). */}
+              <section className="mt-3 grid shrink-0">
+                <div
+                  aria-hidden={tourStep !== null}
+                  className={`col-start-1 row-start-1 ${
+                    tourStep !== null ? 'invisible' : ''
+                  }`}
+                >
                   <h1 className="font-display text-[1.7rem] font-semibold leading-tight text-foreground">
                     {timeGreeting(new Date())}, {greetingName(user)}
                   </h1>
@@ -471,8 +474,13 @@ export function HomeScreen() {
                       </button>
                     </div>
                   )}
-                </section>
-              )}
+                </div>
+                {tourStep !== null && (
+                  <div className="col-start-1 row-start-1 self-start">
+                    <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
+                  </div>
+                )}
+              </section>
 
               {/* Section 2 — the anchor; blooms into the wheel on tap */}
               {/* A size container: the buoy is a square sized to fit (at
