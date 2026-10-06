@@ -519,10 +519,10 @@ describe('home tour', () => {
     expect(titles).toEqual([
       "Let's show you around",
       'Tap the anchor when you need something',
-      'In distress',
-      'Calm down',
-      'Slow the spiral',
-      'Build balance',
+      "When you're in distress",
+      'When you need to calm down',
+      'When you need to slow the spiral',
+      'When you want to build balance',
       'Always one tap away',
       'Reflect when you like',
       'All your anchors',
@@ -538,7 +538,7 @@ describe('home tour', () => {
     await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
     // On the buoy step, tapping the anchor itself moves the tour on, opening the wheel.
     await user.click(screen.getByLabelText('Find an anchor'))
-    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent("When you're in distress")
     const wedge = (label: string) => document.querySelector(`path[aria-label="${label}"]`)
     expect(wedge('In distress')).toHaveAttribute('opacity', '1')
     expect(wedge('Calm down')).toHaveAttribute('opacity', '0.35')
@@ -569,11 +569,11 @@ describe('home tour', () => {
     await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
     // …the buoy is the one live control on its own step…
     await user.click(screen.getByLabelText('Find an anchor'))
-    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent("When you're in distress")
     // …after that the wheel holds still: no leaving via a category.
     const wedge = document.querySelector('path[aria-label="Calm down"]')!
     await user.click(wedge)
-    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('In distress')
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent("When you're in distress")
     expect(screen.queryByRole('heading', { level: 1, name: "Let's soften what you're feeling" })).toBeNull()
   })
 
@@ -584,7 +584,7 @@ describe('home tour', () => {
     for (let i = 0; i < 3; i++) {
       await user.click(within(tourCard()!).getByRole('button', { name: 'Next' }))
     }
-    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('Calm down')
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('When you need to calm down')
 
     await user.click(bottomDistressButton())
     expect(screen.getByRole('heading', { level: 1, name: "Let's just get steady" })).toBeInTheDocument()
@@ -594,7 +594,7 @@ describe('home tour', () => {
 
     // Off home, the nav is fully live; Home brings the tour back where it was.
     await user.click(tab('Home'))
-    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('Calm down')
+    expect(within(tourCard()!).getByRole('heading')).toHaveTextContent('When you need to calm down')
     expect(document.querySelector('path[aria-label="Calm down"]')).toHaveAttribute('opacity', '1')
   })
 })

@@ -19,33 +19,33 @@ export type TourStep = {
 export const tourSteps: TourStep[] = [
   {
     title: "Let's show you around",
-    body: 'A few key spots to know. Skip anytime.',
+    body: 'A few key areas to highlight. You can skip this anytime.',
   },
   {
     title: 'Tap the anchor when you need something',
-    body: 'Four paths to the right anchor for now.',
+    body: 'This gets you closer to the right anchor for now.',
     ring: 'wheel',
   },
   {
-    title: 'In distress',
+    title: "When you're in distress",
     body: 'For the hardest moments.',
     focus: 'crisis',
     wheelOpen: true,
   },
   {
-    title: 'Calm down',
-    body: 'For when feelings run high.',
+    title: 'When you need to calm down',
+    body: 'Anchors to soften big feelings.',
     focus: 'emotion-regulation',
     wheelOpen: true,
   },
   {
-    title: 'Slow the spiral',
-    body: 'For when your thoughts are racing.',
+    title: 'When you need to slow the spiral',
+    body: 'Anchors to quiet racing thoughts.',
     focus: 'distraction',
     wheelOpen: true,
   },
   {
-    title: 'Build balance',
+    title: 'When you want to build balance',
     body: 'Small, steady things that build you up.',
     focus: 'life-building',
     wheelOpen: true,
