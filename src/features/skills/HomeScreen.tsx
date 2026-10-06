@@ -493,8 +493,10 @@ export function HomeScreen() {
                   )}
                 </div>
                 {tourStep !== null && (
-                  <div className="col-start-1 row-start-1 self-end">
+                  <div className="col-start-1 row-start-1 flex flex-col">
+                    <div className="flex-[2]" />
                     <HomeTour step={tourStep} onNext={nextTourStep} onSkip={endTour} />
+                    <div className="flex-[1]" />
                   </div>
                 )}
               </section>
