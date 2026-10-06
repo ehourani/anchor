@@ -32,7 +32,7 @@ supabase gen types typescript --linked > src/types/database.ts   # after any sch
 - **Keep secrets out of the frontend.** Only `VITE_SUPABASE_URL` and the public anon key belong in frontend env. The service-role key must never appear in the frontend or any `VITE_`-prefixed variable. If privileged logic is ever needed, it goes in a Supabase Edge Function with the key kept in function secrets.
 - **Schema changes go through migrations**, never the dashboard UI. After changing the schema, regenerate `src/types/database.ts`.
 - **`tag_categories` and `tags` are global, seeded, read-only vocabulary** (public-read RLS, no write policies). Only `skills` and `usage_logs` carry user data.
-- **Default skills are seeded per-user on signup** via a `security definer` trigger; the master list of starter skills lives inside that function. There is no template table.
+- **Default skills are seeded per-user on signup** via a `security definer` trigger that calls `public.seed_default_skills(uuid)`; that function holds the one master list (in seed order — the first 4 are the onboarding starters and the default distress set). There is no template table. It must never be executable by `anon`/`authenticated`.
 - **Effort is single-select and ordinal** (its `sort_order` is a true rank: low < medium < high) — enforce single-selection in the UI. Situation, setting, senses, and modality are multi-select; senses and modality are optional.
 
 ## Conventions
